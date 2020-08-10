@@ -1,7 +1,7 @@
 name: hover_ussd
-description: A new flutter plugin project.
+description: this is flutter integration of usehover.com sdk
 version: 0.0.1
-author:
+author: lucdotdev
 homepage:
 
 environment:
@@ -11,6 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  meta: ^1.2.2
 
 dev_dependencies:
   flutter_test:
