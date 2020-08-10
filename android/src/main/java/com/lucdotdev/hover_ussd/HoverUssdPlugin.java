@@ -27,6 +27,9 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
   private MethodChannel channel;
   private Activity activity;
 
+  private  HoverUssdApi hoverUssdApi;
+
+
 
 
   @Override
@@ -39,7 +42,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     if (call.method.equals("hoverStartTransaction")) {
 
-      HoverUssdApi hoverUssdApi = new HoverUssdApi(activity);
+
       hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"));
 
     } else if(call.method.equals("hoverInitial")) {
@@ -56,14 +59,21 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
   @Override
   public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-    ///Initialisation de hover
+
     activity = binding.getActivity();
+
+    ///Instanciate hoverApi
+    hoverUssdApi = new HoverUssdApi(activity);
+
+
     binding.addActivityResultListener(this);
 
   }
 
   @Override
   public void onDetachedFromActivityForConfigChanges() {
+
+
   }
 
   @Override
@@ -72,6 +82,9 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
   @Override
   public void onDetachedFromActivity() {
+    activity = null;
+    ///this help us to destroy the smsReceiver
+    hoverUssdApi.destroySmsReceiver();
   }
 
 
@@ -81,6 +94,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
       String[] sessionTextArr = data.getStringArrayExtra("session_messages");
       String uuid = data.getStringExtra("uuid");
+
       return true;
 
     } else if (requestCode == 0 && resultCode == Activity.RESULT_CANCELED) {
