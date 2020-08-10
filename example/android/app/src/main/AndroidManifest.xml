@@ -44,10 +44,8 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
-      <meta-data
-        android:name="com.hover.ApiKey"  
-        android:value="15ccc2bd81801d8c5fbfd5847d3b4e77"/>
-
+        <meta-data
+           android:name="com.hover.ApiKey"  
+           android:value="15ccc2bd81801d8c5fbfd5847d3b4e77"/>
     </application>
 </manifest>

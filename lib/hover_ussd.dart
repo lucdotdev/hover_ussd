@@ -1,17 +1,58 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:meta/meta.dart';
+
+enum TransactionState { succesfull, waiting, failed }
 
 class HoverUssd {
-  static const MethodChannel _channel = const MethodChannel('hover_ussd');
+  final MethodChannel _methodChannel;
+  final EventChannel _eventChannel;
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  factory HoverUssd() {
+    if (_instance == null) {
+      final MethodChannel methodChannel = const MethodChannel('hover_ussd');
+      final EventChannel eventChannel = const EventChannel('transaction_event');
+      _instance = HoverUssd.private(methodChannel, eventChannel);
+    }
+    return _instance;
   }
 
-  static Future sendUssd(String actionId, Map<String, String> extras) async {
-    await _channel.invokeMethod(
-        "hoverStartTransaction", {"action_id": actionId, "extras": extras});
+  static HoverUssd _instance;
+
+  @visibleForTesting
+  HoverUssd.private(this._methodChannel, this._eventChannel);
+
+  Stream<TransactionState> _onTransactionStateChanged;
+
+  Future sendUssd(String actionId, Map<String, String> extras) async =>
+      await _methodChannel.invokeMethod(
+          "hoverStartTransaction", {"action_id": actionId, "extras": extras});
+
+  Stream<TransactionState> onTransactiontateChanged() {
+    if (_onTransactionStateChanged == null) {
+      _onTransactionStateChanged = _eventChannel
+          .receiveBroadcastStream()
+          .map((dynamic event) => _parseTransactionState(event));
+    }
+    return _onTransactionStateChanged;
+  }
+
+  void initialize() async {
+    await _methodChannel.invokeMethod("hoverInitial");
+  }
+
+  TransactionState _parseTransactionState(String state) {
+    switch (state) {
+      case "success":
+        return TransactionState.succesfull;
+        break;
+      case "pending":
+        return TransactionState.waiting;
+      case "failed":
+        return TransactionState.failed;
+      default:
+        throw ArgumentError('$state');
+    }
   }
 }
