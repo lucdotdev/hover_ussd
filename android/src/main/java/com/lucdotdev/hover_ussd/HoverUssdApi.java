@@ -27,7 +27,7 @@ public class HoverUssdApi {
     ///
 
 
-    private final BroadcastReceiver smsReceiver = new BroadcastReceiver() {
+    public static final BroadcastReceiver smsReceiver = new BroadcastReceiver() {
         final String TAG = "SMS";
         @Override
         public void onReceive(final Context context, final Intent i) {
@@ -46,7 +46,7 @@ public class HoverUssdApi {
 
     public void sendUssd(String action_id, HashMap<String, String> extra) {
 
-        LocalBroadcastManager.getInstance(activity).registerReceiver(smsReceiver, new IntentFilter("MY-PACKAGE-NAME.SMS_MISS"));
+        LocalBroadcastManager.getInstance(activity).registerReceiver(smsReceiver, new IntentFilter("com.lucdotdev.hover_ussd.SMS_MISS"));
 
         ///Initialize @HoverBuilder
         final HoverParameters.Builder builder = new HoverParameters.Builder(activity).request(action_id);

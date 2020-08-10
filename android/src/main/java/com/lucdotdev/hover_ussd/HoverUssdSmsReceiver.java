@@ -6,18 +6,18 @@ import android.content.Intent;
 
 import java.util.HashMap;
 
+import io.flutter.plugin.common.EventChannel;
+
 public class HoverUssdSmsReceiver  extends BroadcastReceiver{
+    private final EventChannel.EventSink events;
+
+    public HoverUssdSmsReceiver(EventChannel.EventSink events) {
+        this.events = events;
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         String uuid = intent.getStringExtra("uuid");
-        String confirmationCode, balance;
-        if (intent.hasExtra("parsed_variables")) {
-            HashMap<String, String> parsed_variables = (HashMap<String, String>) intent.getSerializableExtra("parsed_variables");
-            if (parsed_variables.containsKey("confirmCode"))
-                confirmationCode = parsed_variables.get("confirmCode");
-            if (parsed_variables.containsKey("balance"))
-                balance = parsed_variables.get("balance");
-        }
+        events.success("succes");
     }
 }
