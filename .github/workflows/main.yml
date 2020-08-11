@@ -19,8 +19,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: "Install Flutter"
-        run: ./.github/workflows/install-flutter.sh stable
+        run: sudo ./.github/workflows/install-flutter.sh stable
       - name: "Install Tools"
-        run: ./.github/workflows/install-tools.sh
+        run: sudo ./.github/workflows/install-tools.sh
       - name: "Build Example"
-        run: ./.github/workflows/build-example.sh android
+        run: sudo ./.github/workflows/build-example.sh android
