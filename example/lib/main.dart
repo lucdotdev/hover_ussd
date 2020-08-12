@@ -14,7 +14,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  HoverUssd _hoverUssd = HoverUssd();
+  final HoverUssd _hoverUssd = HoverUssd();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

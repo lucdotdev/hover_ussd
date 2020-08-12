@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import com.hover.sdk.api.Hover;
 
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -56,11 +55,11 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
     if (call.method.equals("hoverStartTransaction")) {
 
       hoverUssdApi = new HoverUssdApi(activity);
-      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"));
+      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"), new HoverUssdSmsReceiver(eventSink));
 
 
     } else if(call.method.equals("hoverInitial")) {
-      Hover.initialize(activity);
+      Hover.initialize(activity.getApplicationContext());
     } else {
       result.notImplemented();
     }
@@ -102,10 +101,6 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
   public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
 
-      //String[] sessionTextArr = data.getStringArrayExtra("session_messages");
-     // String uuid = data.getStringExtra("uuid");
-
-
       Toast.makeText(activity, "Please wait for confirmation", Toast.LENGTH_LONG).show();
       eventSink.success("pending");
 
@@ -124,8 +119,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
   @Override
   public void onListen(Object arguments, EventChannel.EventSink events) {
-    new HoverUssdSmsReceiver(events);
-   eventSink = events;
+    eventSink = events;
   }
 
   @Override

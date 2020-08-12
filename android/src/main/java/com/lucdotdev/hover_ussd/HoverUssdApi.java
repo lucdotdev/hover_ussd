@@ -27,24 +27,9 @@ public class HoverUssdApi {
     ///
 
 
-    public static final BroadcastReceiver smsReceiver = new BroadcastReceiver() {
-        final String TAG = "SMS";
-        @Override
-        public void onReceive(final Context context, final Intent i) {
-            Log.i(TAG, "Recieved SMS miss broadcast");
-            Log.i(TAG, "message: " + i.getStringExtra("msg"));
-            Log.i(TAG, "sender: " + i.getStringExtra("sender"));
-            Log.i(TAG, "transaction_uuid: " + i.getStringExtra("transaction_uuid"));
-            Log.i(TAG, "action_id: " + i.getStringExtra("action_id"));
 
-        }
-    };
 
-    ///The method sendUssd begin the ussd Transaction
-    ///
-    ///
-
-    public void sendUssd(String action_id, HashMap<String, String> extra) {
+    public void sendUssd(String action_id, HashMap<String, String> extra, BroadcastReceiver smsReceiver) {
 
         LocalBroadcastManager.getInstance(activity).registerReceiver(smsReceiver, new IntentFilter("com.lucdotdev.hover_ussd.SMS_MISS"));
 
@@ -66,10 +51,6 @@ public class HoverUssdApi {
 
 
 
-    ///This help us to unregister a the @sms receiver
-    public void destroySmsReceiver(){
-        activity.unregisterReceiver(smsReceiver);
-    }
 
 
 }
