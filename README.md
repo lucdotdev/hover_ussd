@@ -1,5 +1,7 @@
 # hover_ussd
 
+![build](https://github.com/lucdotdev/hover_ussd/workflows/build/badge.svg)
+
 A new flutter plugin project.
 
 ## Getting Started
