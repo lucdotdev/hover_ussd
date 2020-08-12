@@ -19,4 +19,3 @@ jobs:
      - run: git clone https://github.com/flutter/flutter.git
      - run: echo "::add-path::/flutter/bin"
      - run: cd example
-     - run: flutter build apk
