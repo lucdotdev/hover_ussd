@@ -6,9 +6,6 @@ on:
   push:
     branches:
       - master
-env:
-  FLUTTERFIRE_PLUGIN_SCOPE: "*hover_ussd*"
-  FLUTTERFIRE_PLUGIN_SCOPE_EXAMPLE: "*hover_ussd_example*"
 
 jobs:
   android:
