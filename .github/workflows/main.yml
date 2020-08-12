@@ -17,6 +17,6 @@ jobs:
        with:
          java-version: '12.x'
      - run: git clone https://github.com/flutter/flutter.git
-     - run: export PATH="./flutter/bin"
+     - run: echo "::add-path::/flutter/bin$"
      - run: cd example
      - run: flutter build apk
