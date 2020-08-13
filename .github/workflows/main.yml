@@ -19,7 +19,7 @@ jobs:
           channel: 'dev' 
 
       - name: go to example
-        run: cd example
+        run: cd  D:\a\hover_ussd\hover_ussd\example
       - name: g
         run: dir
       - name: Install Dependencies
