@@ -9,13 +9,18 @@ on:
 
 jobs:
   android:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 30
     steps:
-     - uses: actions/checkout@v2
-     - uses: actions/setup-java@v1
-       with:
-         java-version: '12.x'
-     - run: git clone https://github.com/flutter/flutter.git
-     - run: echo "::add-path::/flutter/bin"
-     - run: cd example
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v1.3.0
+        with:
+          flutter-version: '1.21.0-9.0.pre'
+          channel: 'dev' 
+      - name: Install Dependencies
+        run: flutter packages get
+      - name: Build example
+        run: |
+             cd example
+             flutter build apk
+
