@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  meta: ^1.2.2
+  meta: ^1.1.8 
 
 dev_dependencies:
   flutter_test:
