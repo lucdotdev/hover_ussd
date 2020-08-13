@@ -3,20 +3,22 @@ package com.lucdotdev.hover_ussd;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 
 import io.flutter.plugin.common.EventChannel;
 
-public class HoverUssdSmsReceiver  extends BroadcastReceiver{
-    private EventChannel.EventSink events;
+public final class HoverUssdSmsReceiver  extends BroadcastReceiver{
+    private  HoverUssdReceiverInterface hoverUssdReceiverInterface;
 
-    public HoverUssdSmsReceiver(EventChannel.EventSink events) {
-        this.events = events;
+    public HoverUssdSmsReceiver(HoverUssdReceiverInterface hoverUssdReceiverInterface){
+        this.hoverUssdReceiverInterface = hoverUssdReceiverInterface;
     }
-
     @Override
     public void onReceive(Context context, Intent intent) {
-        events.success( intent.getStringExtra("status"));
+        hoverUssdReceiverInterface.onRecevedData(intent.getStringExtra("status"));
     }
-
+    public interface HoverUssdReceiverInterface{
+        void onRecevedData(String msg) ;
+    }
 }

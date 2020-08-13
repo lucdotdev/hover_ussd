@@ -44,7 +44,7 @@ class HoverUssd {
 
   TransactionState _parseTransactionState(String state) {
     switch (state) {
-      case "success":
+      case "succeeded":
         return TransactionState.succesfull;
         break;
       case "pending":

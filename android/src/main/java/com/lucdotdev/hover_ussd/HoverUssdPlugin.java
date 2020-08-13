@@ -25,7 +25,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.plugin.common.PluginRegistry;
 
 /** HoverUssdPlugin */
-public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware ,PluginRegistry.ActivityResultListener, EventChannel.StreamHandler  {
+public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware ,PluginRegistry.ActivityResultListener, EventChannel.StreamHandler, HoverUssdSmsReceiver.HoverUssdReceiverInterface {
 
 
   private MethodChannel channel;
@@ -55,7 +55,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
     if (call.method.equals("hoverStartTransaction")) {
 
       hoverUssdApi = new HoverUssdApi(activity);
-      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"), new HoverUssdSmsReceiver(eventSink));
+      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"), new HoverUssdSmsReceiver(this));
 
 
     } else if(call.method.equals("hoverInitial")) {
@@ -118,12 +118,17 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
   }
 
   @Override
-  public void onListen(Object arguments, EventChannel.EventSink events) {
+  public  void onListen(Object arguments, EventChannel.EventSink events) {
     eventSink = events;
   }
 
   @Override
   public void onCancel(Object arguments) {
 
+  }
+
+  @Override
+  public void onRecevedData(String msg) {
+    eventSink.success(msg);
   }
 }
