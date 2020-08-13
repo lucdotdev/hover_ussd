@@ -17,13 +17,10 @@ jobs:
         with:
           flutter-version: '1.21.0-9.0.pre'
           channel: 'dev' 
-
-      - name: go to example
-        run: cd  D:\a\hover_ussd\hover_ussd\example
-      - name: g
-        run: dir
       - name: Install Dependencies
         run: flutter packages get
-      - name: Format
-        run: flutter build apk
+      - name: Build example
+        run: |
+             cd example
+             flutter build apk
 
