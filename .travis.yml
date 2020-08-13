@@ -10,8 +10,8 @@ install:
 script:
   - export PATH="$PATH:flutter/bin"
   - cd example
-  - flutter pub get
-  - flutter build apk --debug
+  - ../flutter/bin flutter pub get
+  - ../flutter/bin flutter build apk --debug
 cache:
   directories:
     - $HOME/.pub-cache
