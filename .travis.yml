@@ -8,9 +8,10 @@ install:
   - git clone https://github.com/flutter/flutter.git -b stable
   - ./flutter/bin/flutter doctor
 script:
-  - export PATH="$PATH:./flutter/bin"
+  - export PATH="$PATH:flutter/bin"
   - cd example
   - flutter pub get
+  - flutter build apk --debug
 cache:
   directories:
     - $HOME/.pub-cache
