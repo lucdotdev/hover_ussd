@@ -131,6 +131,6 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
   @Override
   public void onRecevedData(String msg) {
-    eventSink.success(msg);
+    eventSink.success("succeeded");
   }
 }
