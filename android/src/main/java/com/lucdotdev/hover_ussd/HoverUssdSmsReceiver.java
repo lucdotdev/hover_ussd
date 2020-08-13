@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.util.Log;
 
 
+import com.hover.sdk.transactions.Transaction;
+
 import io.flutter.plugin.common.EventChannel;
 
 public final class HoverUssdSmsReceiver  extends BroadcastReceiver{
@@ -16,8 +18,10 @@ public final class HoverUssdSmsReceiver  extends BroadcastReceiver{
     }
     @Override
     public void onReceive(Context context, Intent intent) {
-        hoverUssdReceiverInterface.onRecevedData(intent.getStringExtra("status"));
+        String t = Transaction.SUCCEEDED;
+        hoverUssdReceiverInterface.onRecevedData(t);
     }
+
     public interface HoverUssdReceiverInterface{
         void onRecevedData(String msg) ;
     }
