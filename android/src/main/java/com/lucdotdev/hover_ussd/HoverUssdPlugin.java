@@ -35,6 +35,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
   private  HoverUssdApi hoverUssdApi;
   private EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
+  private HoverUssdSmsReceiver hoverUssdSmsReceiver;
 
 
 
@@ -47,6 +48,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
     eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "transaction_event");
     eventChannel.setStreamHandler(this);
     channel.setMethodCallHandler(this);
+    hoverUssdSmsReceiver = new HoverUssdSmsReceiver(this);
 
   }
 
@@ -55,7 +57,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
     if (call.method.equals("hoverStartTransaction")) {
 
       hoverUssdApi = new HoverUssdApi(activity);
-      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"), new HoverUssdSmsReceiver(this));
+      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"), hoverUssdSmsReceiver);
 
 
     } else if(call.method.equals("hoverInitial")) {
