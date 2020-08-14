@@ -72,12 +72,12 @@ void send(){
   - [ ] customization
   - [ ] translation
   
-## important
+## Important
  
  * **support only basic feature**
  * **always in developpement**
  * **this isn't a officialy plugin**
       
-## maintainers
+## Maintainers
 - [Lucdotdev](https://twitter.com/lucdotdev)
  
