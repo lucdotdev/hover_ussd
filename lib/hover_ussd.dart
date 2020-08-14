@@ -29,7 +29,7 @@ class HoverUssd {
       await _methodChannel.invokeMethod(
           "hoverStartTransaction", {"action_id": actionId, "extras": extras});
 
-  Stream<TransactionState> onTransactiontateChanged() {
+  Stream<TransactionState> get onTransactiontateChanged {
     if (_onTransactionStateChanged == null) {
       _onTransactionStateChanged = _eventChannel
           .receiveBroadcastStream()
