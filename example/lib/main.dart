@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text("Start Trasaction"),
               ),
               StreamBuilder(
-                stream: _hoverUssd.onTransactiontateChanged(),
+                stream: _hoverUssd.onTransactiontateChanged,
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   if (snapshot.data == TransactionState.succesfull) {
                     return Text("succesfull");
