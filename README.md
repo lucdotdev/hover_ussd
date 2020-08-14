@@ -7,16 +7,77 @@
 [![Flutter Website](https://img.shields.io/badge/flutter-website-deepskyblue.svg)](https://flutter.dev/docs/development/data-and-backend/state-mgmt/options#bloc--rx)
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
-A new flutter plugin project.
+A flutter plugin to make payments by usehover.com ussd gateway using Android Intent and receiving the transaction information back in response. 
+**android only**
 
 ## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+* Adding The hover api key refert to documentation at [docs.usehover.com](https://docs.usehover.com/)
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```xml
+ <meta-data
+        android:name="com.hover.ApiKey"  
+        android:value="<YOUR_API_TOKEN>"/>
+```
+## Usage
+* Initialize the plugin in main method
+```dart
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  HoverUssd().initialize();
+  runApp(MyApp());
+}
+```
+* Start a transaction
+```dart 
+import 'package:hover_ussd/hover_ussd.dart';
+...
+final HoverUssd _hoverUssd = HoverUssd();
 
+///Begin transaction
+void send(){
+  _hoverUssd.sendUssd("c6e45e62", {"price": "4000"});
+}
+
+///Listen for transaction status
+ _hoverUssd.onTransactiontateChanged.listen((event) {
+        // Do something with new state
+        if (event == TransactionState.succesfull) {
+          print("succesfull");
+        } else if (event == TransactionState.waiting) {
+          print("pending");
+        } else if (event == TransactionState.failed) {
+          print('failed');
+        }
+  });
+///You can listen with StreamBuilder to update ui
+ StreamBuilder(
+     stream: _hoverUssd.onTransactiontateChanged,
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.data == TransactionState.succesfull) {
+                    return Text("succesfull");
+                  } else if (snapshot.data == TransactionState.waiting) {
+                    return Text("pending");
+                  } else if (snapshot.data == TransactionState.failed) {
+                    return Text("failed");
+                  }
+          return Text("no transaction");
+   },
+);
+
+```
+## Features
+  - [x] start a transaction
+  - [x] listen for result  
+  - [ ] customization
+  - [ ] translation
+  
+## important
+ 
+ * **support only basic feature**
+ * **always in developpement**
+ * **this isn't a officialy plugin**
+      
+## maintainers
+- [Lucdotdev](https://twitter.com/lucdotdev)
+ 
