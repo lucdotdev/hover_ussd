@@ -25,7 +25,8 @@ class HoverUssd {
 
   Stream<TransactionState> _onTransactionStateChanged;
 
-  Future sendUssd(String actionId, Map<String, String> extras) async =>
+  Future sendUssd(
+          {@required String actionId, Map<String, String> extras}) async =>
       await _methodChannel.invokeMethod(
           "hoverStartTransaction", {"action_id": actionId, "extras": extras});
 
@@ -38,7 +39,7 @@ class HoverUssd {
     return _onTransactionStateChanged;
   }
 
-  void initialize() async {
+  Future initialize() async {
     await _methodChannel.invokeMethod("hoverInitial");
   }
 

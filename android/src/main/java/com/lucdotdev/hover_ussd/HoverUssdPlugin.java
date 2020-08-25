@@ -3,8 +3,7 @@ package com.lucdotdev.hover_ussd;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.widget.ImageView;
+import android.content.BroadcastReceiver;
 import android.widget.Toast;
 
 
@@ -35,21 +34,26 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
   private  HoverUssdApi hoverUssdApi;
   private EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
-  private HoverUssdSmsReceiver hoverUssdSmsReceiver;
+ 
 
 
-
+  private final BroadcastReceiver smsReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(final Context context, final Intent i){
+      Toast.makeText(activity, "Error: " + i.getStringExtra("status"), Toast.LENGTH_LONG).show();
+      eventSink.success("failed");
+    }
+  };
 
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
 
+    new HoverUssdSmsReceiver(this);
     channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "hover_ussd");
     eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "transaction_event");
     eventChannel.setStreamHandler(this);
     channel.setMethodCallHandler(this);
-    hoverUssdSmsReceiver = new HoverUssdSmsReceiver(this);
-
   }
 
   @Override
@@ -57,7 +61,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
     if (call.method.equals("hoverStartTransaction")) {
 
       hoverUssdApi = new HoverUssdApi(activity);
-      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"), hoverUssdSmsReceiver);
+      hoverUssdApi.sendUssd((String) call.argument("action_id"), (HashMap<String, String>) call.argument("extras"),smsReceiver);
 
 
     } else if(call.method.equals("hoverInitial")) {
@@ -110,7 +114,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
     } else if (requestCode == 0 && resultCode == Activity.RESULT_CANCELED) {
 
-      Toast.makeText(activity, "Error: " + data.getStringExtra("error"), Toast.LENGTH_LONG).show();
+      Toast.makeText(activity, "Error: ", Toast.LENGTH_LONG).show();
 
       eventSink.success("failed");
 
@@ -131,6 +135,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
   @Override
   public void onRecevedData(String msg) {
+    Toast.makeText(activity, "Error: " +msg, Toast.LENGTH_LONG).show();
     eventSink.success(msg);
   }
 }

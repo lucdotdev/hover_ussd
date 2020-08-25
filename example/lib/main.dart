@@ -28,7 +28,8 @@ class _MyAppState extends State<MyApp> {
             children: [
               FlatButton(
                 onPressed: () {
-                  _hoverUssd.sendUssd("c6e45e62", {"price": "4000"});
+                  _hoverUssd.sendUssd(
+                      actionId: "c6e45e62", extras: {"price": "4000"});
                 },
                 child: Text("Start Trasaction"),
               ),

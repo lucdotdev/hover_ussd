@@ -2,7 +2,6 @@ package com.lucdotdev.hover_ussd;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
@@ -14,7 +13,6 @@ import com.hover.sdk.api.HoverParameters;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.flutter.Log;
 
 public class HoverUssdApi {
 
@@ -32,7 +30,7 @@ public class HoverUssdApi {
 
 
 
-        public void sendUssd(String action_id, HashMap<String, String> extra, HoverUssdSmsReceiver smsReceiver) {
+        public void sendUssd(String action_id, HashMap<String, String> extra, BroadcastReceiver smsReceiver) {
 
             LocalBroadcastManager.getInstance(activity).registerReceiver(smsReceiver, new IntentFilter("com.lucdotdev.hover_ussd.SMS_MISS"));
 
