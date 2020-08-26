@@ -37,9 +37,7 @@ final HoverUssd _hoverUssd = HoverUssd();
 
 ///Begin transaction
 void send(){
-   ///First param @String [action_id]
-   ///Second param @ Map [step_variables]
-  _hoverUssd.sendUssd("c6e45e62", {"price": "4000"});
+  _hoverUssd.sendUssd(actionId: "c6e45e62", extras: {"price": "4000"});;
 }
 
 ///Listen for transaction status
