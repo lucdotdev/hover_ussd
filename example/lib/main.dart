@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:hover_ussd/hover_ussd.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  HoverUssd().initialize();
   runApp(MyApp());
 }
 
@@ -34,12 +32,13 @@ class _MyAppState extends State<MyApp> {
                 child: Text("Start Trasaction"),
               ),
               StreamBuilder(
-                stream: _hoverUssd.onTransactiontateChanged,
+                stream: _hoverUssd.getUssdTransactionState,
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   if (snapshot.data == TransactionState.succesfull) {
                     return Text("succesfull");
-                  } else if (snapshot.data == TransactionState.waiting) {
-                    return Text("pending");
+                  } else if (snapshot.data ==
+                      TransactionState.actionDowaloadFailed) {
+                    return Text("action download failed");
                   } else if (snapshot.data == TransactionState.failed) {
                     return Text("failed");
                   }

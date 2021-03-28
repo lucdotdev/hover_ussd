@@ -2,15 +2,4 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.lucdotdev.hover_ussd">
     <uses-permission android:name="android.permission.INTERNET" />
-    <application>
-        <receiver
-            android:name=".HoverUssdSmsReceiver"
-            android:enabled="true"
-            android:exported="false"
-            tools:ignore="Instantiatable">
-            <intent-filter>
-                <action android:name="com.lucdotdev.hover_ussd.CONFIRMED_TRANSACTION"/>
-            </intent-filter>
-        </receiver>
-         </application>
 </manifest>

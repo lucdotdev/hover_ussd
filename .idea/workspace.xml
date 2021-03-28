@@ -2,19 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="22bba4e2-5e0b-4ba7-bf35-9f477cb51dcf" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdApi.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdApi.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdPlugin.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdPlugin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdSmsReceiver.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdSmsReceiver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/example/android/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/example/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/example/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/example/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/hover_ussd.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/hover_ussd.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="R58M33JAJBD" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -43,9 +42,9 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="416" y="288" key="com.intellij.ide.util.TipDialog" timestamp="1597055850579">
+    <state x="416" y="288" key="com.intellij.ide.util.TipDialog" timestamp="1616883523785">
       <screen x="0" y="0" width="1440" height="929" />
     </state>
-    <state x="416" y="288" key="com.intellij.ide.util.TipDialog/0.0.1440.929@0.0.1440.929" timestamp="1597055850579" />
+    <state x="416" y="288" key="com.intellij.ide.util.TipDialog/0.0.1440.929@0.0.1440.929" timestamp="1616883523785" />
   </component>
 </project>
