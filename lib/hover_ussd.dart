@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
-import 'package:meta/meta.dart';
 
 enum TransactionState {
   // when the ussd code run succesfully
@@ -16,22 +14,12 @@ enum TransactionState {
 }
 
 class HoverUssd {
-  // the name of your app generally
-  // cc: https://docs.usehover.com/customization
-  final String? branding;
-  // the xml drawable string of logo,
-  // ex: if your drawable is "drawable/ic_launcher"
-  // then you can pass logo as ic_launcher
-  final String? logo;
-  late MethodChannel _methodChannel;
-  late EventChannel _eventChannel;
+  static const MethodChannel _methodChannel = MethodChannel('HoverUssdChannel');
+  static const EventChannel _eventChannel = EventChannel('TransactionEvent');
 
-  HoverUssd({this.branding, this.logo}) {
-    _methodChannel = const MethodChannel('HoverUssdChannel');
-    _eventChannel = const EventChannel('TransactionEvent');
-
-    _initialize(
-        branding: branding ?? "Flutter App", logo: logo ?? "ic_launcher");
+  static Future<void> initialize({String? branding, String? logo}) async {
+    await _methodChannel.invokeMethod("Initialize",
+        {"branding": branding ?? "Flutter App", "logo": logo ?? "ic_launcher"});
   }
 
   Stream<TransactionState>? _onTransactionStateChanged;
@@ -61,11 +49,6 @@ class HoverUssd {
           .map((dynamic event) => _parseTransactionState(event));
     }
     return _onTransactionStateChanged;
-  }
-
-  Future<void> _initialize({String? branding, String? logo}) async {
-    await _methodChannel
-        .invokeMethod("Initialize", {"branding": branding, "logo": logo});
   }
 
   TransactionState _parseTransactionState(String? state) {

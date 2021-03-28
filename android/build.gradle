@@ -35,19 +35,15 @@ android {
     compileSdkVersion 29
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 18
     }
     lintOptions {
         disable 'InvalidPackage'
     }
-    configurations {
-        compile {
-            transitive = false
-        }
-    }
+
 
     dependencies {
 
-        implementation 'com.hover:android-sdk:1.7.2-noSMS'
+        compile 'com.hover:android-sdk:1.7.2-noSMS'
     }
 }

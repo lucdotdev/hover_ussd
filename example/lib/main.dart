@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hover_ussd/hover_ussd.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  HoverUssd.initialize();
   runApp(MyApp());
 }
 
