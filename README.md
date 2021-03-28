@@ -21,19 +21,11 @@ A flutter plugin to make payments by usehover.com ussd gateway using Android Int
         android:value="<YOUR_API_TOKEN>"/>
 ```
 ## Usage
-* Initialize the plugin in main method
-```dart
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  HoverUssd().initialize();
-  runApp(MyApp());
-}
-```
-* Start a transaction
+* Example
 ```dart 
 import 'package:hover_ussd/hover_ussd.dart';
 ...
-final HoverUssd _hoverUssd = HoverUssd();
+final HoverUssd _hoverUssd = HoverUssd(branding: "My Awaesome app", logo:"myLogo_added");
 
 ///Begin transaction
 void send(){
@@ -55,13 +47,7 @@ void send(){
  StreamBuilder(
      stream: _hoverUssd.onTransactiontateChanged,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.data == TransactionState.succesfull) {
-                    return Text("succesfull");
-                  } else if (snapshot.data == TransactionState.waiting) {
-                    return Text("pending");
-                  } else if (snapshot.data == TransactionState.failed) {
-                    return Text("failed");
-                  }
+                  
           return Text("no transaction");
    },
 );
@@ -70,15 +56,15 @@ void send(){
 ## Features
   - [x] start a transaction
   - [x] listen for result  
-  - [ ] customization
+  - [x] customization
   - [ ] translation
   
 ## Important
  
- * **support only basic feature**
- * **always in developpement**
- * **this isn't a officialy plugin**
+
+ * **Production ready**
+ * **This is a unofficial plugin**
       
 ## Maintainers
-- [Lucdotdev](https://twitter.com/lucdotdev)
+- [lucdotdev](mailto:lucdotdev@gmail.com)
  
