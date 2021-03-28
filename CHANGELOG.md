@@ -1,4 +1,4 @@
-## 1.0.0-nullsaffety.0
+## 1.0.0-nullsaffety
 *change from hover standar to hover noSms cc : 
 *no need to calling HoverUssd().initialise() from main()
 *some api improvement **onTransactiontateChanged** changed to **getUssdTransactionState**

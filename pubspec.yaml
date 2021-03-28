@@ -1,6 +1,6 @@
 name: hover_ussd
 description: A flutter plugin to make payments by usehover.com ussd gateway using Android Intent and receiving the transaction information back in response.
-version: 1.0.0-nullsaffety.0
+version: 1.0.0-nullsaffety
 
 homepage: https://github.com/lucdotdev/hover_ussd
 
