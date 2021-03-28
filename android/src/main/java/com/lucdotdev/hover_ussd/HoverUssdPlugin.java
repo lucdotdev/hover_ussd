@@ -3,9 +3,11 @@ package com.lucdotdev.hover_ussd;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.hover.sdk.actions.HoverAction;
 import com.hover.sdk.api.Hover;
@@ -49,6 +51,7 @@ public class HoverUssdPlugin implements FlutterPlugin, MethodCallHandler, Activi
         channel.setMethodCallHandler(this);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
         HoverUssdApi hoverUssdApi = new HoverUssdApi(activity);
