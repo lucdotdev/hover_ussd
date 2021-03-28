@@ -6,7 +6,9 @@
 [![Flutter Website](https://img.shields.io/badge/flutter-website-deepskyblue.svg)](https://flutter.dev/docs/development/data-and-backend/state-mgmt/options#bloc--rx)
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
-<img src="doc/hover.png" width="350 px"/>
+<img src= "https://raw.githubusercontent.com/lucdotdev/hover_ussd/nullsafetty/doc/hover.png" width="350 px"/>
+© image by Francis Mwakitumbula
+
 
 A flutter plugin to make payments by usehover.com ussd gateway using Android Intent and receiving the transaction information back in response. 
 **android only**
