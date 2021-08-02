@@ -25,34 +25,62 @@ A flutter plugin to make payments by usehover.com ussd gateway using Android Int
 ## Usage
 * Example
 ```dart 
-import 'package:hover_ussd/hover_ussd.dart';
-...
-final HoverUssd _hoverUssd = HoverUssd(branding: "My Awaesome app", logo:"myLogo_added");
+import 'package:flutter/material.dart';
 
-///Begin transaction
-void send(){
-  _hoverUssd.sendUssd(actionId: "c6e45e62", extras: {"price": "4000"});;
+import 'package:hover_ussd/hover_ussd.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  HoverUssd.initialize();
+  runApp(MyApp());
 }
 
-///Listen for transaction status
- _hoverUssd.onTransactiontateChanged.listen((event) {
-        // Do something with new state
-        if (event == TransactionState.succesfull) {
-          print("succesfull");
-        } else if (event == TransactionState.waiting) {
-          print("pending");
-        } else if (event == TransactionState.failed) {
-          print('failed');
-        }
-  });
-///You can listen with StreamBuilder to update ui
- StreamBuilder(
-     stream: _hoverUssd.onTransactiontateChanged,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  
-          return Text("no transaction");
-   },
-);
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final HoverUssd _hoverUssd = HoverUssd();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Plugin example app'),
+        ),
+        body: Center(
+          child: Row(
+            children: [
+              FlatButton(
+                onPressed: () {
+                  _hoverUssd.sendUssd(
+                      actionId: "c6e45e62", extras: {"price": "4000"});
+                },
+                child: Text("Start Trasaction"),
+              ),
+              StreamBuilder(
+                stream: _hoverUssd.getUssdTransactionState,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.data == TransactionState.succesfull) {
+                    return Text("succesfull");
+                  } else if (snapshot.data ==
+                      TransactionState.actionDowaloadFailed) {
+                    return Text("action download failed");
+                  } else if (snapshot.data == TransactionState.failed) {
+                    return Text("failed");
+                  }
+                  return Text("no transaction");
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 ```
 ## Features
