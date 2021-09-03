@@ -6,7 +6,9 @@
 [![Flutter Website](https://img.shields.io/badge/flutter-website-deepskyblue.svg)](https://flutter.dev/docs/development/data-and-backend/state-mgmt/options#bloc--rx)
 [![License: MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
-<img src="docs/hover.png" alt="drawing" width="350 px"/>
+<img src= "https://raw.githubusercontent.com/lucdotdev/hover_ussd/nullsafetty/doc/hover.png" width="350 px"/>
+© image by Francis Mwakitumbula
+
 
 A flutter plugin to make payments by usehover.com ussd gateway using Android Intent and receiving the transaction information back in response. 
 **android only**
@@ -21,64 +23,77 @@ A flutter plugin to make payments by usehover.com ussd gateway using Android Int
         android:value="<YOUR_API_TOKEN>"/>
 ```
 ## Usage
-* Initialize the plugin in main method
-```dart
+* Example
+```dart 
+import 'package:flutter/material.dart';
+
+import 'package:hover_ussd/hover_ussd.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  HoverUssd().initialize();
+  HoverUssd.initialize();
   runApp(MyApp());
 }
-```
-* Start a transaction
-```dart 
-import 'package:hover_ussd/hover_ussd.dart';
-...
-final HoverUssd _hoverUssd = HoverUssd();
 
-///Begin transaction
-void send(){
-  _hoverUssd.sendUssd(actionId: "c6e45e62", extras: {"price": "4000"});;
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
 }
 
-///Listen for transaction status
- _hoverUssd.onTransactiontateChanged.listen((event) {
-        // Do something with new state
-        if (event == TransactionState.succesfull) {
-          print("succesfull");
-        } else if (event == TransactionState.waiting) {
-          print("pending");
-        } else if (event == TransactionState.failed) {
-          print('failed');
-        }
-  });
-///You can listen with StreamBuilder to update ui
- StreamBuilder(
-     stream: _hoverUssd.onTransactiontateChanged,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
+class _MyAppState extends State<MyApp> {
+  final HoverUssd _hoverUssd = HoverUssd();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Plugin example app'),
+        ),
+        body: Center(
+          child: Row(
+            children: [
+              FlatButton(
+                onPressed: () {
+                  _hoverUssd.sendUssd(
+                      actionId: "c6e45e62", extras: {"price": "4000"});
+                },
+                child: Text("Start Trasaction"),
+              ),
+              StreamBuilder(
+                stream: _hoverUssd.getUssdTransactionState,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
                   if (snapshot.data == TransactionState.succesfull) {
                     return Text("succesfull");
-                  } else if (snapshot.data == TransactionState.waiting) {
-                    return Text("pending");
+                  } else if (snapshot.data ==
+                      TransactionState.actionDowaloadFailed) {
+                    return Text("action download failed");
                   } else if (snapshot.data == TransactionState.failed) {
                     return Text("failed");
                   }
-          return Text("no transaction");
-   },
-);
+                  return Text("no transaction");
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 ```
 ## Features
   - [x] start a transaction
   - [x] listen for result  
-  - [ ] customization
+  - [x] customization
   - [ ] translation
   
 ## Important
  
- * **support only basic feature**
- * **always in developpement**
- * **this isn't a officialy plugin**
+
+ * **Production ready**
+ * **This is a unofficial plugin**
       
 ## Maintainers
-- [Lucdotdev](https://twitter.com/lucdotdev)
- 
+- [lucdotdev](mailto:lucdotdev@gmail.com)

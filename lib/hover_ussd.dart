@@ -1,36 +1,48 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
-import 'package:meta/meta.dart';
 
-enum TransactionState { succesfull, waiting, failed }
+enum TransactionState {
+  // when the ussd code run succesfully
+
+  succesfull,
+  // when the ussd code failed; this can be caused by user
+  // dissmiss or request refuse
+  failed,
+  // this is when hover failed to dowload the list of your
+  // action , usualy when the app is not connected
+  actionDowaloadFailed
+}
 
 class HoverUssd {
-  final MethodChannel _methodChannel;
-  final EventChannel _eventChannel;
+  static const MethodChannel _methodChannel = MethodChannel('HoverUssdChannel');
+  static const EventChannel _eventChannel = EventChannel('TransactionEvent');
 
-  factory HoverUssd() {
-    if (_instance == null) {
-      final MethodChannel methodChannel = const MethodChannel('hover_ussd');
-      final EventChannel eventChannel = const EventChannel('transaction_event');
-      _instance = HoverUssd.private(methodChannel, eventChannel);
-    }
-    return _instance;
+  static Future<void> initialize({String? branding, String? logo}) async {
+    await _methodChannel.invokeMethod("Initialize",
+        {"branding": branding ?? "Flutter App", "logo": logo ?? "ic_launcher"});
   }
 
-  static HoverUssd _instance;
+  Stream<TransactionState>? _onTransactionStateChanged;
 
-  @visibleForTesting
-  HoverUssd.private(this._methodChannel, this._eventChannel);
+  // when you call send ussd, automatically the ussd procces begin
+  // and the permission is autaumatically handle
+  // this method came with 3 params
+  // @actionId is the id for the action you trying to call
+  // cc: https://docs.usehover.com/ussd
+  // @extras is the extras variable which came with action id , you can
+  // convigure tha on : https://www.usehover.com/
+  // optional: if you want to customize the ussd theme then you can add a theme at
+  // your style.xml and then add the style string on @theme param
+  Future<void> sendUssd(
+          {required String actionId,
+          Map<String, String>? extras,
+          String? theme}) async =>
+      await _methodChannel.invokeMethod("HoverStartATransaction",
+          {"actionId": actionId, "extras": extras ?? {}, "theme": theme});
 
-  Stream<TransactionState> _onTransactionStateChanged;
+  // this is for getting response of the current ussd session
 
-  Future sendUssd(
-          {@required String actionId, Map<String, String> extras}) async =>
-      await _methodChannel.invokeMethod(
-          "hoverStartTransaction", {"action_id": actionId, "extras": extras});
-
-  Stream<TransactionState> get onTransactiontateChanged {
+  Stream<TransactionState>? get getUssdTransactionState {
     if (_onTransactionStateChanged == null) {
       _onTransactionStateChanged = _eventChannel
           .receiveBroadcastStream()
@@ -39,19 +51,14 @@ class HoverUssd {
     return _onTransactionStateChanged;
   }
 
-  Future initialize() async {
-    await _methodChannel.invokeMethod("hoverInitial");
-  }
-
-  TransactionState _parseTransactionState(String state) {
+  TransactionState _parseTransactionState(String? state) {
     switch (state) {
-      case "succeeded":
+      case "success":
         return TransactionState.succesfull;
-        break;
-      case "pending":
-        return TransactionState.waiting;
       case "failed":
         return TransactionState.failed;
+      case "actionDownloadFailed":
+        return TransactionState.actionDowaloadFailed;
       default:
         throw ArgumentError('$state');
     }
