@@ -2,5 +2,5 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.lucdotdev.hover_ussd">
     <uses-permission android:name="android.permission.INTERNET" />
-    
+
 </manifest>

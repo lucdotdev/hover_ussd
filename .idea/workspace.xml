@@ -2,19 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="22bba4e2-5e0b-4ba7-bf35-9f477cb51dcf" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdApi.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdApi.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdPlugin.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdPlugin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdSmsReceiver.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/src/main/java/com/lucdotdev/hover_ussd/HoverUssdSmsReceiver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/example/android/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/example/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/CHANGELOG.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/hover_ussd.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/hover_ussd.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="R58M33JAJBD" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="Pixel_3a_API_24" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -25,8 +24,10 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="dart.analysis.tool.window.force.activate" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="AndroidSdkUpdater" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
   <component name="SvnConfiguration">
@@ -43,9 +44,13 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="416" y="288" key="com.intellij.ide.util.TipDialog" timestamp="1597055850579">
+    <state x="570" y="353" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog" timestamp="1630667685980">
       <screen x="0" y="0" width="1440" height="929" />
     </state>
-    <state x="416" y="288" key="com.intellij.ide.util.TipDialog/0.0.1440.929@0.0.1440.929" timestamp="1597055850579" />
+    <state x="570" y="353" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog/0.0.1440.929@0.0.1440.929" timestamp="1630667685980" />
+    <state x="222" y="107" key="SettingsEditor" timestamp="1632682465559">
+      <screen x="0" y="0" width="1440" height="929" />
+    </state>
+    <state x="222" y="107" key="SettingsEditor/0.0.1440.929@0.0.1440.929" timestamp="1632682465559" />
   </component>
 </project>

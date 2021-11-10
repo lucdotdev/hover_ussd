@@ -42,6 +42,6 @@ android {
     }
     dependencies {
 
-        implementation 'com.hover:android-sdk:1.6.3'
+        implementation 'com.hover:android-sdk:1.7.2'
     }
 }

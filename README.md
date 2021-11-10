@@ -10,7 +10,7 @@
 © image by Francis Mwakitumbula
 
 
-A flutter plugin to make payments by usehover.com ussd gateway using Android Intent and receiving the transaction information back in response. 
+A flutter plugin implemanting usehover.com ussd gateway sdk using Android Intent and receiving the transaction information back in response. 
 **android only**
 
 ## Getting Started
@@ -22,25 +22,16 @@ A flutter plugin to make payments by usehover.com ussd gateway using Android Int
         android:name="com.hover.ApiKey"  
         android:value="<YOUR_API_TOKEN>"/>
 ```
-## Usage
-* Example
+## Basic Usage
+
 ```dart 
-import 'package:flutter/material.dart';
-
-import 'package:hover_ussd/hover_ussd.dart';
-
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  HoverUssd.initialize();
+  HoverUssd.initialize(branding: 'hover ussd example');
   runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
+class MyApp extends StatelessWidget {
   final HoverUssd _hoverUssd = HoverUssd();
 
   @override
@@ -48,7 +39,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('hover ussd example'),
         ),
         body: Center(
           child: Row(
@@ -56,22 +47,35 @@ class _MyAppState extends State<MyApp> {
               FlatButton(
                 onPressed: () {
                   _hoverUssd.sendUssd(
-                      actionId: "c6e45e62", extras: {"price": "4000"});
+                      actionId: "c6e45e62",
+                      extras: {"price": "4000"},
+                      theme: "myHoverTheme",
+                      header: "transaction airtel",
+                      showUserStepDescriptions: true);
                 },
                 child: Text("Start Trasaction"),
               ),
-              StreamBuilder(
+              StreamBuilder<TransactionState>(
                 stream: _hoverUssd.getUssdTransactionState,
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.data == TransactionState.succesfull) {
-                    return Text("succesfull");
-                  } else if (snapshot.data ==
-                      TransactionState.actionDowaloadFailed) {
-                    return Text("action download failed");
-                  } else if (snapshot.data == TransactionState.failed) {
-                    return Text("failed");
+                builder: (BuildContext context, snapshot) {
+                  if (snapshot.data is SmsParsed) {
+                    return Text(
+                        "Sms parsed : \n" + snapshot.data!.toMap().toString());
                   }
-                  return Text("no transaction");
+
+                  if (snapshot.data is UssdSucceded) {
+                    return Text("Ussd Succeded : \n" +
+                        snapshot.data!.toMap().toString());
+                  }
+                  if (snapshot.data is UssdLoading) {
+                    return Text("loading...");
+                  }
+                  if (snapshot.data is UssdFailed) {
+                    return Text(
+                        "Ussd Failed : \n" + snapshot.data!.toMap().toString());
+                  }
+
+                  return Text("");
                 },
               ),
             ],
@@ -81,19 +85,14 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
 ```
-## Features
-  - [x] start a transaction
-  - [x] listen for result  
-  - [x] customization
-  - [ ] translation
-  
-## Important
- 
 
- * **Production ready**
+## Customization
+
+## Important
  * **This is a unofficial plugin**
+## Credit
+* Thanks to the authors of useHover android sdk, this work based of it  
       
 ## Maintainers
 - [lucdotdev](mailto:lucdotdev@gmail.com)
