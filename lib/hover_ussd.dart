@@ -237,27 +237,22 @@ class HoverUssd {
     if (_onTransactionStateChanged == null) {
       _onTransactionStateChanged =
           _eventChannel.receiveBroadcastStream().map((dynamic event) {
-        return _parseTransactionState(event)!;
+        return _parseTransactionState(event['state'] as String, event);
       });
     }
     return _onTransactionStateChanged;
   }
 
-  TransactionState? _parseTransactionState(dynamic result) {
-    switch (result["state"]) {
+  TransactionState _parseTransactionState(String state, dynamic result) {
+    switch (state) {
       case "smsParsed":
-        print("smsParsed");
         return SmsParsed.fromMap(result);
       case "ussdSucceded":
-        print("ussdSucceded");
         return UssdSucceded.fromMap(result);
       case "ussdFailed":
-        print("ussdFailed");
         return UssdFailed.fromMap(result);
       case "ussdLoading":
-        print("ussdLoading");
         return UssdLoading();
-
       default:
         return EmptyState();
     }

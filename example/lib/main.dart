@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('hover ussd example'),
+          title: const Text('Hover Ussd Example'),
         ),
         body: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
                     actionId: "c6e45e62",
                     extras: {"price": "4000"},
                     theme: "myHoverTheme",
-                    header: "transaction airtel",
+                    header: "Hover Ussd Example",
                     showUserStepDescriptions: true);
               },
               child: Text("Start Transaction"),
@@ -36,23 +36,23 @@ class MyApp extends StatelessWidget {
             StreamBuilder<TransactionState>(
               stream: _hoverUssd.getUssdTransactionState,
               builder: (BuildContext context, snapshot) {
-                if (snapshot.data! is SmsParsed) {
+                if (snapshot.data is SmsParsed) {
                   return Text(
                       "Sms parsed : \n" + snapshot.data!.toMap().toString());
                 }
 
-                if (snapshot.data! is UssdSucceded) {
+                if (snapshot.data is UssdSucceded) {
                   return Text(
                       "Ussd Succeded : \n" + snapshot.data!.toMap().toString());
                 }
-                if (snapshot.data! is UssdLoading) {
+                if (snapshot.data is UssdLoading) {
                   return Text("loading...");
                 }
-                if (snapshot.data! is UssdFailed) {
+                if (snapshot.data is UssdFailed) {
                   return Text(
                       "Ussd Failed : \n" + snapshot.data!.toMap().toString());
                 }
-                if (snapshot.data! is EmptyState) {
+                if (snapshot.data is EmptyState) {
                   return Text("Empty State");
                 }
 

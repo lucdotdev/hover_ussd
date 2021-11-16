@@ -27,7 +27,7 @@ A flutter plugin implemanting usehover.com ussd gateway sdk using Android Intent
 ```dart 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  HoverUssd.initialize(branding: 'hover ussd example');
+  HoverUssd.initialize(branding: 'Hover Ussd Example');
   runApp(MyApp());
 }
 
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('hover ussd example'),
+          title: const Text('Hover Ussd Example'),
         ),
         body: Center(
           child: Row(
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
                       actionId: "c6e45e62",
                       extras: {"price": "4000"},
                       theme: "myHoverTheme",
-                      header: "transaction airtel",
+                      header: "Hover Ussd Example",
                       showUserStepDescriptions: true);
                 },
                 child: Text("Start Trasaction"),
@@ -88,7 +88,11 @@ class MyApp extends StatelessWidget {
 ```
 
 ## Customization
-
+To use your logo on the processing screen 
+```dart
+ HoverUssd.initialize(
+      branding: 'Hover Ussd Example', logo: "mipmap/ic_launcher");
+```
 ## Important
  * **This is a unofficial plugin**
 ## Credit
