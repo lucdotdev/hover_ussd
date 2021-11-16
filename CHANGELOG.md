@@ -1,5 +1,6 @@
 ## 2.0.0
 * revert to hover standart
+* change sendUssd() to startTransaction()
 ## 1.0.0a
 * change from hover standard to hover noSms
 * You can now customize the hover the by passing branding or drawable to the HoverUssd Contruction
