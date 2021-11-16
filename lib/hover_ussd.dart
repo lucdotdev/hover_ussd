@@ -215,7 +215,7 @@ class HoverUssd {
   /// optional: if you want to customize the ussd theme then you can add a theme at
   /// your style.xml and then add the style string on [theme] param
   /// see <https://docs.usehover.com/customization> for other params
-  Future<void> sendUssd(
+  Future<void> startTransaction(
           {required String actionId,
           Map<String, String>? extras,
           String? theme,

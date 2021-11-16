@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
           children: [
             TextButton(
               onPressed: () {
-                _hoverUssd.sendUssd(
+                _hoverUssd.startTransaction(
                     actionId: "c6e45e62",
                     extras: {"price": "4000"},
                     theme: "myHoverTheme",
