@@ -15,10 +15,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.hover.sdk.api.Hover;
+import com.hover.sdk.transactions.Transaction;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,38 +39,97 @@ import io.flutter.plugin.common.PluginRegistry;
 public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler, PluginRegistry.ActivityResultListener, EventChannel.StreamHandler {
 
 
+
     private MethodChannel channel;
-    Activity activity;
-    Context context;
+    private Activity activity;
+
+
     private EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
     private BroadcastReceiver smsReceiver;
+
+
+
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+
+
+        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "HoverUssdChannel");
+        eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "TransactionEvent");
+
+        eventChannel.setStreamHandler(this);
+        channel.setMethodCallHandler(this);
+    }
 
     private String intentNullAwareString(Intent intent, String name) {
         return intent.hasExtra(name) ? intent.getStringExtra(name) : "";
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "HoverUssdChannel");
-        eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "TransactionEvent");
-        context = flutterPluginBinding.getApplicationContext();
-        eventChannel.setStreamHandler(this);
-        channel.setMethodCallHandler(this);
+    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
+        HoverUssdApi hoverUssdApi = new HoverUssdApi(activity, activity.getApplicationContext());
+        switch (call.method) {
+            case "Initialize":
+
+                Hover.initialize(activity);
+                if (call.argument("branding") != null && call.argument("logo") != null) {
+                    String[] parts = ((String) call.argument("logo")).split("/");
+                    String resourceType = parts[0];
+                    String resourceName = parts[1];
+
+                    int id =activity.getApplicationContext().getResources().getIdentifier(resourceName, resourceType, activity.getApplicationContext().getPackageName());
+                    Hover.setBranding((String) call.argument("branding"), id, activity.getApplicationContext());
+                }
+                break;
+            case "HoverStartATransaction":
+                Map<String, Object> resultJson = new HashMap<>();
+                resultJson.put("state", "ussdLoading");
+                eventSink.success(resultJson);
+                hoverUssdApi.sendUssd(
+                        (String) call.argument("actionId"),
+                        call.hasArgument("extras") ?
+                                (HashMap<String, String>) Objects.requireNonNull(call.argument("extras"))
+                                : new HashMap<String, String>(),
+                        call.hasArgument("theme") ?
+                                (String) call.argument("theme") :
+                                "",
+                        call.hasArgument("header") ?
+                                (String) call.argument("header")
+                                : "",
+                        call.hasArgument("initialProcessingMessage") ?
+                                (String) call.argument("initialProcessingMessage")
+                                : "",
+                        call.hasArgument("finalMsgDisplayTime") ?
+                                (int) call.argument("finalMsgDisplayTime")
+                                : 5000,
+                        false
+
+
+                );
+                break;
+            default:
+                result.notImplemented();
+
+        }
+
     }
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
         eventChannel.setStreamHandler(null);
+
     }
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         activity = binding.getActivity();
+
         binding.addActivityResultListener(this);
-    
+
+
         smsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -101,27 +162,23 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
         activity.registerReceiver(smsReceiver
                 , new IntentFilter("com.lucdotdev.hover_ussd.CONFIRMED_TRANSACTION"));
 
-
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
-        activity.unregisterReceiver(smsReceiver);
         activity = null;
     }
 
     @Override
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
         activity = binding.getActivity();
-        activity.registerReceiver(smsReceiver
-                , new IntentFilter("com.lucdotdev.hover_ussd.CONFIRMED_TRANSACTION"));
     }
 
     @Override
     public void onDetachedFromActivity() {
-        activity.unregisterReceiver(smsReceiver);
         activity = null;
     }
+
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -151,59 +208,8 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
 
             return true;
         }
-
         return false;
     }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        HoverUssdApi hoverUssdApi = new HoverUssdApi(activity, context, eventSink);
-        switch (call.method) {
-            case "Initialize":
-
-                Hover.initialize(activity);
-                if (call.argument("branding") != null && call.argument("logo") != null) {
-                    String[] parts = ((String) call.argument("logo")).split("/");
-                    String resourceType = parts[0];
-                    String resourceName = parts[1];
-
-                    int id = context.getResources().getIdentifier(resourceName, resourceType, context.getPackageName());
-                    Hover.setBranding((String) call.argument("branding"), id, context);
-                }
-                break;
-            case "HoverStartATransaction":
-
-                hoverUssdApi.sendUssd(
-                        (String) call.argument("actionId"),
-                        call.hasArgument("extras") ?
-                                (HashMap<String, String>) Objects.requireNonNull(call.argument("extras"))
-                                : new HashMap<String, String>(),
-                        call.hasArgument("theme") ?
-                                (String) call.argument("theme") :
-                                "",
-                        call.hasArgument("header") ?
-                                (String) call.argument("header")
-                                : "",
-                        call.hasArgument("initialProcessingMessage") ?
-                                (String) call.argument("initialProcessingMessage")
-                                : "",
-                        call.hasArgument("finalMsgDisplayTime") ?
-                                (int) call.argument("finalMsgDisplayTime")
-                                : 5000,
-                        false
-
-
-                );
-                break;
-
-            default:
-                result.notImplemented();
-
-        }
-
-    }
-
 
     @Override
     public void onListen(Object arguments, EventChannel.EventSink events) {
@@ -214,4 +220,5 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
     public void onCancel(Object arguments) {
         eventSink = null;
     }
+
 }

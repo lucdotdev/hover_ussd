@@ -12,7 +12,6 @@ import com.hover.sdk.api.HoverParameters;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.flutter.plugin.common.EventChannel;
 
 
 public class HoverUssdApi {
@@ -22,11 +21,10 @@ public class HoverUssdApi {
     private Context context;
 
 
-    private EventChannel.EventSink eventSink;
 
-    public HoverUssdApi(Activity activity, Context context,EventChannel.EventSink eventSink) {
+    public HoverUssdApi(Activity activity, Context context) {
         this.activity = activity;
-        this.eventSink = eventSink;
+
         this.context = context;
     }
 

@@ -2,6 +2,67 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+class Transaction {
+  final String? id;
+  final String? actionId;
+  final String? uuid;
+  final String? status;
+  final String? category;
+  final String? userMessage;
+  final String? networkHni;
+  final String? inputExtras;
+  final String? parsedVariables;
+  final List<dynamic>? ussdMessages;
+  final List<dynamic>? enteredValues;
+  final List<dynamic>? smsHits;
+  final List<dynamic>? smsMisses;
+  final List<dynamic>? logMessages;
+  final List<dynamic>? matchedParsers;
+  final int? reqTimestamp;
+  final int? updatedTimestamp;
+
+  Transaction(
+      {this.uuid,
+      this.id,
+      this.actionId,
+      this.status,
+      this.category,
+      this.userMessage,
+      this.networkHni,
+      this.inputExtras,
+      this.parsedVariables,
+      this.ussdMessages,
+      this.enteredValues,
+      this.smsHits,
+      this.smsMisses,
+      this.logMessages,
+      this.matchedParsers,
+      this.reqTimestamp,
+      this.updatedTimestamp});
+
+  factory Transaction.fromMap(Map<String, dynamic> map) {
+    return Transaction(
+      uuid: map['uuid'],
+      id: map['id'],
+      actionId: map['actionId'],
+      status: map['status'],
+      category: map['category'],
+      userMessage: map['userMessage'],
+      networkHni: map['networkHni'],
+      inputExtras: map['inputExtras'],
+      parsedVariables: map['parsedVariables'],
+      ussdMessages: map['ussdMessages'],
+      enteredValues: map['enteredValues'],
+      smsHits: map['smsHits'],
+      smsMisses: map['smsMisses'],
+      logMessages: map['logMessages'],
+      matchedParsers: map['matchedParsers'],
+      reqTimestamp: map['reqTimestamp'],
+      updatedTimestamp: map['updatedTimestamp'],
+    );
+  }
+}
+
 abstract class TransactionState {
   TransactionState();
 
@@ -182,7 +243,7 @@ class UssdFailed extends TransactionState {
 class UssdLoading extends TransactionState {
   @override
   Map<String, dynamic> toMap() {
-    return {};
+    throw UnimplementedError();
   }
 }
 
@@ -232,18 +293,37 @@ class HoverUssd {
         "finalMsgDisplayTime": finalMsgDisplayTime ?? 5000
       });
 
+  Future<List<Transaction>> getAllTransactions() async {
+    List<Map<String, dynamic>> result =
+        await _methodChannel.invokeMethod("HoverStartATransaction");
+    List<Transaction> transctions = [];
+    for (final item in result) {
+      transctions.add(Transaction());
+    }
+    return transctions;
+  }
+
   /// this is for getting response of the current ussd session
   Stream<TransactionState>? get getUssdTransactionState {
     if (_onTransactionStateChanged == null) {
       _onTransactionStateChanged =
           _eventChannel.receiveBroadcastStream().map((dynamic event) {
-        return _parseTransactionState(event['state'] as String, event);
+        try {
+          print(event);
+          TransactionState transactionState = _parseTransactionState(
+              event['state'], Map<String, dynamic>.from(event));
+          return transactionState;
+        } catch (e) {
+          print(e);
+          return EmptyState();
+        }
       });
     }
     return _onTransactionStateChanged;
   }
 
-  TransactionState _parseTransactionState(String state, dynamic result) {
+  TransactionState _parseTransactionState(
+      String state, Map<String, dynamic> result) {
     switch (state) {
       case "smsParsed":
         return SmsParsed.fromMap(result);
