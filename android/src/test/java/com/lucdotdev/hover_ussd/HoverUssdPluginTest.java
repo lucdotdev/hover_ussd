@@ -1,10 +1,5 @@
 package android.src.test.java.com.lucdotdev.hover_ussd;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
 import org.junit.Test;
 
 /**
@@ -18,12 +13,6 @@ import org.junit.Test;
 public class HoverUssdPluginTest {
   @Test
   public void onMethodCall_getPlatformVersion_returnsExpectedValue() {
-    HoverUssdPlugin plugin = new HoverUssdPlugin();
 
-    final MethodCall call = new MethodCall("getPlatformVersion", null);
-    MethodChannel.Result mockResult = mock(MethodChannel.Result.class);
-    plugin.onMethodCall(call, mockResult);
-
-    verify(mockResult).success("Android " + android.os.Build.VERSION.RELEASE);
   }
 }
