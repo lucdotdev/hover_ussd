@@ -1,23 +1,29 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hover_ussd/hover_ussd.dart';
+import 'package:hover_ussd/hover_ussd_platform_interface.dart';
+import 'package:hover_ussd/hover_ussd_method_channel.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+class MockHoverUssdPlatform
+    with MockPlatformInterfaceMixin
+    implements HoverUssdPlatform {
+
+  @override
+  Future<String?> getPlatformVersion() => Future.value('42');
+}
 
 void main() {
-  const MethodChannel channel = MethodChannel('hover_ussd');
+  final HoverUssdPlatform initialPlatform = HoverUssdPlatform.instance;
 
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return '42';
-    });
+  test('$MethodChannelHoverUssd is the default instance', () {
+    expect(initialPlatform, isInstanceOf<MethodChannelHoverUssd>());
   });
 
-  group("Test Plugin", () {
-    test("Initialization", () {});
-  });
+  test('getPlatformVersion', () async {
+    HoverUssd hoverUssdPlugin = HoverUssd();
+    MockHoverUssdPlatform fakePlatform = MockHoverUssdPlatform();
+    HoverUssdPlatform.instance = fakePlatform;
 
-  tearDown(() {
-    channel.setMockMethodCallHandler(null);
+    expect(await hoverUssdPlugin.getPlatformVersion(), '42');
   });
 }
