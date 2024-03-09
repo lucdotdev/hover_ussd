@@ -51,16 +51,6 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
         EventChannel transactionEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "TransactionEvent");
         EventChannel actionDownloadEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "ActionDownloadEvent");
 
-        transactionEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object arguments, EventChannel.EventSink events) {
-                transactionEventSink = events;
-            }
-
-            @Override
-            public void onCancel(Object arguments) {
-            }
-        });
         actionDownloadEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object arguments, EventChannel.EventSink events) {
@@ -71,6 +61,18 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
             public void onCancel(Object arguments) {
             }
         });
+        
+        transactionEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object arguments, EventChannel.EventSink events) {
+                transactionEventSink = events;
+            }
+
+            @Override
+            public void onCancel(Object arguments) {
+            }
+        });
+
         channel.setMethodCallHandler(this);
 
     }

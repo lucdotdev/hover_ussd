@@ -65,7 +65,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     _checkPermissions();
-    _initHover();
+    Future.delayed(Duration.zero, () {
+      _initHover();
+    });
   }
 
   @override
@@ -95,11 +97,19 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _getActions() async {
+  Future<void> _getAndGoToActions() async {
     final actions = await _hoverUssd.getAllActions();
     for (var action in actions) {
       print(action.toMap());
     }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HoverActionListPage(
+          hoverActions: actions,
+        ),
+      ),
+    );
   }
 
   @override
@@ -126,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: const Text("Start Transaction"),
             ),
             ElevatedButton(
-              onPressed: _getActions,
+              onPressed: _getAndGoToActions,
               child: const Text("Get Actions"),
             ),
 
@@ -212,6 +222,48 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class HoverActionListPage extends StatefulWidget {
+  final List<HoverAction> hoverActions;
+
+  const HoverActionListPage({Key? key, required this.hoverActions})
+      : super(key: key);
+
+  @override
+  _HoverActionListPageState createState() => _HoverActionListPageState();
+}
+
+class _HoverActionListPageState extends State<HoverActionListPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Hover Action List'),
+      ),
+      body: ListView.builder(
+        itemCount: widget.hoverActions.length,
+        itemBuilder: (BuildContext context, int index) {
+          final hoverAction = widget.hoverActions[index];
+          return ListTile(
+            title: Text(hoverAction.name ?? ''),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Network: ${hoverAction.networkName ?? ''}'),
+                Text('Country: ${hoverAction.countryAlpha2 ?? ''}'),
+                Text('Transaction Type: ${hoverAction.transactionType ?? ''}'),
+                // Add more details as needed
+              ],
+            ),
+            onTap: () {
+              // Handle onTap if needed
+            },
+          );
+        },
       ),
     );
   }

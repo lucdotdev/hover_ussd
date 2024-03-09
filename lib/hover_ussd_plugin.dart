@@ -80,11 +80,11 @@ class HoverUssd {
             result.map((item) => HoverAction.fromMap(item.cast<String, dynamic>())).toList();
         return actions;
       } else {
-        return []; // Or handle the null case according to your requirements.
+        return []; 
       }
     } catch (e) {
       print('Error retrieving actions: $e');
-      return []; // Or handle the error case according to your requirements.
+      return [];
     }
   }
 
@@ -104,11 +104,11 @@ class HoverUssd {
             resultList.map((item) => Transaction.fromMap(item)).toList();
         return transactions;
       } else {
-        return []; // Or handle the null case according to your requirements.
+        return []; 
       }
     } catch (e) {
       print('Error retrieving transactions: $e');
-      return []; // Or handle the error case according to your requirements.
+      return []; 
     }
   }
 
