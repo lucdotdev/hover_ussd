@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -32,13 +31,14 @@ import io.flutter.plugin.common.PluginRegistry;
  */
 
 
-public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler, PluginRegistry.ActivityResultListener, EventChannel.StreamHandler {
+public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler, PluginRegistry.ActivityResultListener{
 
 
     private Activity activity;
 
 
-    private EventChannel.EventSink eventSink;
+    private EventChannel.EventSink transactionEventSink;
+    private EventChannel.EventSink actionDownloadEventSink;
     private BroadcastReceiver smsReceiver;
 
     private HoverUssdApi hoverUssdApi;
@@ -47,14 +47,147 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
 
-
         MethodChannel channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "HoverUssdChannel");
-        EventChannel eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "TransactionEvent");
+        EventChannel transactionEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "TransactionEvent");
+        EventChannel actionDownloadEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "ActionDownloadEvent");
 
-        eventChannel.setStreamHandler(this);
+        transactionEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object arguments, EventChannel.EventSink events) {
+                transactionEventSink = events;
+            }
+
+            @Override
+            public void onCancel(Object arguments) {
+            }
+        });
+        actionDownloadEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object arguments, EventChannel.EventSink events) {
+                actionDownloadEventSink = events;
+            }
+
+            @Override
+            public void onCancel(Object arguments) {
+            }
+        });
         channel.setMethodCallHandler(this);
 
+    }
 
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+
+
+    }
+
+    private String intentNullAwareString(Intent intent, String name) {
+        return intent.hasExtra(name) ? intent.getStringExtra(name) : "";
+    }
+
+
+    @Override
+    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
+        hoverUssdApi = new HoverUssdApi(activity, transactionEventSink);
+        switch (call.method) {
+            case "Initialize":
+                hoverUssdApi.initialize(call.argument("apiKey"), call.argument("branding"), call.argument("logo"), call.argument("notificationLogo"), new Hover.DownloadListener() {
+                    @Override
+                    public void onError(String s) {
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("state", "actionDownloadFailed");
+                        result.put("error", "error");
+                        actionDownloadEventSink.success(result);
+                    }
+
+                    @Override
+                    public void onSuccess(ArrayList<HoverAction> arrayList) {
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("state", "actionDownloaded");
+                        result.put("isDownloaded", true);
+                        actionDownloadEventSink.success(result);
+                    }
+                });
+             
+                break;
+            case "HasAllPermissions":
+                result.success(hoverUssdApi.hasAllPerms());
+                break;
+            case "getAllActions":
+                result.success(hoverUssdApi.getAllActions());
+                break;
+            case "getAllTransactions":
+                result.success(hoverUssdApi.getAllTransaction());
+                break;
+            case "refreshActions":
+                hoverUssdApi.refreshActions(new Hover.DownloadListener() {
+                    @Override
+                    public void onError(String s) {
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("state", "actionDownloadFailed");
+                        result.put("error", "error");
+                        actionDownloadEventSink.success(result);
+                    }
+
+                    @Override
+                    public void onSuccess(ArrayList<HoverAction> arrayList) {
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("state", "actionDownloaded");
+                        result.put("isDownloaded", true);
+                        actionDownloadEventSink.success(result);
+                    }
+                });
+                break;
+
+            case "HoverStartATransaction":
+                Map<String, Object> resultJson = new HashMap<>();
+                resultJson.put("state", "ussdLoading");
+                transactionEventSink.success(resultJson);
+
+                try {
+                    hoverUssdApi.sendUssd(
+                            (String) call.argument("actionId"),
+                            call.hasArgument("extras") ?
+                                    Objects.requireNonNull(call.argument("extras"))
+                                    : new HashMap<String, String>(),
+                            call.hasArgument("theme") ?
+                                    (String) call.argument("theme") :
+                                    "",
+                            call.hasArgument("header") ?
+                                    (String) call.argument("header")
+                                    : "",
+                            call.hasArgument("initialProcessingMessage") ?
+                                    (String) call.argument("initialProcessingMessage")
+                                    : "",
+                            false,
+                            call.hasArgument("finalMsgDisplayTime") ? (int) call.argument("finalMsgDisplayTime") : 5000);
+                } catch (Exception e) {
+
+                    Map<String, Object> resultError = new HashMap<>();
+                    resultError.put("state", "ussdFailed");
+
+                    resultError.put("errorMessage", e.getMessage());
+
+                    transactionEventSink.success(resultError);
+
+                }
+
+                result.success(true);
+
+                break;
+            default:
+                result.notImplemented();
+
+        }
+        hoverUssdApi = null;
+
+    }
+
+
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        activity = binding.getActivity();
+        binding.addActivityResultListener(this);
         smsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -77,145 +210,10 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
                 result.put("regex", intentNullAwareString(intent, "regex"));
 
 
-                eventSink.success(result);
+                transactionEventSink.success(result);
             }
         };
-
-
-    }
-
-    private String intentNullAwareString(Intent intent, String name) {
-        return intent.hasExtra(name) ? intent.getStringExtra(name) : "";
-    }
-
-    private Map<String, Object> actionToMap(HoverAction hoverAction) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", hoverAction.id);
-        map.put("public_id", hoverAction.public_id);
-        map.put("name", hoverAction.name);
-        map.put("channel_id", hoverAction.channel_id);
-        map.put("network_name", hoverAction.network_name);
-        map.put("hni_list", hoverAction.hni_list); // Convert JSONArray to String
-        map.put("country_alpha2", hoverAction.country_alpha2);
-        map.put("root_code", hoverAction.root_code);
-        map.put("transport_type", hoverAction.transport_type);
-        map.put("transaction_type", hoverAction.transaction_type);
-        map.put("custom_steps", hoverAction.custom_steps); // Convert JSONArray to String
-        map.put("from_institution_id", hoverAction.from_institution_id);
-        map.put("from_institution_name", hoverAction.from_institution_name);
-        map.put("from_institution_logo", hoverAction.from_institution_logo);
-        map.put("to_institution_id", hoverAction.to_institution_id);
-        map.put("to_institution_name", hoverAction.to_institution_name);
-        map.put("to_institution_logo", hoverAction.to_institution_logo);
-        map.put("to_country_alpha2", hoverAction.to_country_alpha2);
-        map.put("tags_list", hoverAction.tags_list); // Convert JSONArray to String
-        map.put("created_timestamp", hoverAction.created_timestamp);
-        map.put("updated_timestamp", hoverAction.updated_timestamp);
-        map.put("bounty_amount", hoverAction.bounty_amount);
-        map.put("bounty_is_open", hoverAction.bounty_is_open);
-        map.put("is_ready", hoverAction.is_ready);
-        map.put("required_params", hoverAction.required_params); // Convert JSONObject to String
-        map.put("output_params", hoverAction.output_params); // Convert JSONObject to String
-        map.put("bonus_percent", hoverAction.bonus_percent);
-        map.put("bonus_message", hoverAction.bonus_message);
-
-        return map;
-
-    }
-
-
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        hoverUssdApi = new HoverUssdApi(activity, eventSink);
-
-        switch (call.method) {
-            case "Initialize":
-                hoverUssdApi.initialize(call.argument("branding"), call.argument("logo"), call.argument("notificationLogo"), new Hover.DownloadListener() {
-                            @Override
-                            public void onError(String s) {
-                                result.success(null);
-
-                            }
-
-                            @Override
-                            public void onSuccess(ArrayList<HoverAction> arrayList) {
-                                ArrayList<Map<String, Object>> actionsList = new ArrayList<>();
-
-                                for (HoverAction hoverAction : arrayList) {
-
-                                    actionsList.add(actionToMap(hoverAction));
-                                }
-
-                                result.success(actionsList);
-                            }
-                        }
-                );
-                break;
-
-            case "HasAllPermissions":
-                result.success(hoverUssdApi.hasAllPerms());
-                break;
-            case "getAllActions":
-                hoverUssdApi.getAllActions(new Hover.DownloadListener() {
-                    @Override
-                    public void onError(String s) {
-                        result.success(null);
-
-                    }
-
-                    @Override
-                    public void onSuccess(ArrayList<HoverAction> arrayList) {
-                        ArrayList<Map<String, Object>> actionsList = new ArrayList<>();
-
-                        for (HoverAction hoverAction : arrayList) {
-
-                            actionsList.add(actionToMap(hoverAction));
-                        }
-
-                        result.success(actionsList);
-                    }
-                });
-
-            case "HoverStartATransaction":
-                Map<String, Object> resultJson = new HashMap<>();
-                resultJson.put("state", "ussdLoading");
-                eventSink.success(resultJson);
-                hoverUssdApi.sendUssd(
-                        (String) call.argument("actionId"),
-                        call.hasArgument("extras") ?
-                                Objects.requireNonNull(call.argument("extras"))
-                                : new HashMap<String, String>(),
-                        call.hasArgument("theme") ?
-                                (String) call.argument("theme") :
-                                "",
-                        call.hasArgument("header") ?
-                                (String) call.argument("header")
-                                : "",
-                        call.hasArgument("initialProcessingMessage") ?
-                                (String) call.argument("initialProcessingMessage")
-                                : "",
-                        false,
-                        call.hasArgument("finalMsgDisplayTime") ? (int) call.argument("finalMsgDisplayTime") : 5000
-
-
-                );
-
-                LocalBroadcastManager.getInstance(activity.getBaseContext()).registerReceiver(smsReceiver, new IntentFilter(activity.getPackageName() + ".SMS_MISS"));
-
-
-                break;
-            default:
-                result.notImplemented();
-
-        }
-
-    }
-
-
-    @Override
-    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-        activity = binding.getActivity();
-        binding.addActivityResultListener(this);
+        LocalBroadcastManager.getInstance(activity.getBaseContext()).registerReceiver(smsReceiver, new IntentFilter(activity.getPackageName() + ".SMS_MISS"));
 
     }
 
@@ -224,17 +222,11 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
         activity = null;
     }
 
-    @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-
-        eventSink.endOfStream();
-
-
-    }
 
     @Override
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
         activity = binding.getActivity();
+        binding.addActivityResultListener(this);
     }
 
     @Override
@@ -250,14 +242,14 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
             String uuid = data.hasExtra("uuid") ? data.getStringExtra("uuid") : "";
 
             Map<String, Object> result = new HashMap<>();
-            result.put("state", "ussdSucceded");
+            result.put("state", "ussdSucceeded");
             result.put("uuid", uuid);
             if (data.hasExtra("session_messages")) {
                 String[] sessionMessages = data.getStringArrayExtra("session_messages");
                 result.put("ussdSessionMessages", sessionMessages);
             }
 
-            eventSink.success(result);
+            transactionEventSink.success(result);
 
             return true;
 
@@ -267,35 +259,25 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
             if (data != null) {
                 result.put("errorMessage", data.getStringExtra("error"));
             }
-            eventSink.success(result);
+            transactionEventSink.success(result);
 
             return false;
-        } else {
-            Map<String, Object> result = new HashMap<>();
-
-
-            result.put("state", "ussdFailed");
-            if (data != null) {
-                result.put("errorMessage", data.getStringExtra("error"));
-            }
-            eventSink.success(result);
-            return false;
         }
+        //else {
+//            Map<String, Object> result = new HashMap<>();
+//
+//
+//            result.put("state", "ussdFailed");
+//            if (data != null) {
+//                result.put("errorMessage", data.getStringExtra("error"));
+//            }
+//            transactionEventSink.success(result);
+//            return false;
+       // }
 
+        return false;
     }
 
 
-
-    @Override
-    public void onListen(Object arguments, EventChannel.EventSink events) {
-        if (eventSink == null) {
-            eventSink = events;
-        }
-    }
-
-    @Override
-    public void onCancel(Object arguments) {
-        eventSink = null;
-    }
 
 }

@@ -9,8 +9,11 @@ import android.util.Log;
 import com.hover.sdk.actions.HoverAction;
 import com.hover.sdk.api.Hover;
 import com.hover.sdk.api.HoverParameters;
+import com.hover.sdk.database.HoverRoomDatabase;
+import com.hover.sdk.transactions.Transaction;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,21 +26,23 @@ public class HoverUssdApi {
     private final Activity activity;
     private final EventChannel.EventSink eventSink;
 
+    private final Context context;
+
     public HoverUssdApi(Activity activity, EventChannel.EventSink eventSink) {
         this.activity = activity;
         this.eventSink = eventSink;
+        this.context = activity.getApplicationContext();
     }
 
-    public void initialize(String branding, String logo, String notificationLogo, Hover.DownloadListener downloadListener) {
-        Hover.initialize(activity.getApplicationContext(), false, downloadListener);
+    public void initialize(String apiKey, String branding, String logo, String notificationLogo, Hover.DownloadListener downloadListener) {
+        Hover.initialize(context, apiKey, true, downloadListener);
         if (branding != null && logo != null && notificationLogo != null) {
-            Context context = activity.getApplicationContext();
             int logoResourceId = getResourceId(context, logo);
             int notificationLogoResourceId = getResourceId(context, notificationLogo);
             if (logoResourceId == 0) {
                 Log.e("HOVER_USSD_PLUGIN", ":LOGO NOT FOUND");
             } else {
-                Hover.setBranding(branding, logoResourceId, notificationLogoResourceId, activity.getApplicationContext());
+                Hover.setBranding(branding, logoResourceId, notificationLogoResourceId, context);
             }
         }
     }
@@ -50,12 +55,40 @@ public class HoverUssdApi {
     // get all actions from hover and convert to an list of array map
 
 
-    public void getAllActions(Hover.DownloadListener actionsDownloadListener) {
-        Hover.updateActionConfigs(actionsDownloadListener, activity.getApplicationContext());
+    public ArrayList<Map<String, Object>> getAllActions() {
+        List<HoverAction> actions = HoverRoomDatabase.getInstance(context).actionDao().getAll();
+        ArrayList<Map<String, Object>> mapActions = new ArrayList<>();
+
+        for (HoverAction action : actions) {
+            Map<String, Object> mapAction = HoverUssdObjectToMap.convertHoverActionToMap(action);
+            mapActions.add(mapAction);
+        }
+
+        return mapActions;
     }
 
-    @Deprecated()
-    public void getAllTransaction() {
+    public void updateActionConfigs(Hover.DownloadListener actionDownloadListener) {
+        Hover.updateActionConfigs(actionDownloadListener, context);
+    }
+
+    public void refreshActions(Hover.DownloadListener actionDownloadListener) {
+        Hover.updateActionConfigs(actionDownloadListener, context);
+    }
+
+
+    public ArrayList<Map<String, Object>> getAllTransaction() {
+
+        List<Transaction> transactions = HoverRoomDatabase.getInstance(context).transactionDao().getAll();
+        ArrayList<Map<String, Object>> mapTransactions = new ArrayList<>();
+
+        for (Transaction transaction : transactions) {
+
+            Map<String, Object> mapTransaction = HoverUssdObjectToMap.convertTransactionToMap(transaction);
+            mapTransactions.add(mapTransaction);
+        }
+
+        return mapTransactions;
+
     }
 
     private int getResourceId(Context context, String resourceName) {
@@ -80,7 +113,9 @@ public class HoverUssdApi {
     ) {
 
 
-        final HoverParameters.Builder builder = new HoverParameters.Builder(activity.getApplicationContext()).request(action_id);
+        final HoverParameters.Builder builder = new HoverParameters.Builder(context);
+
+        builder.request(action_id);
 
         if (extra != null) {
             if (!extra.isEmpty()) {
@@ -92,7 +127,7 @@ public class HoverUssdApi {
 
 
         if (theme != null) {
-            int id = activity.getBaseContext().getResources().getIdentifier(theme, "style", activity.getApplicationContext().getPackageName());
+            int id = context.getResources().getIdentifier(theme, "style", context.getPackageName());
             builder.style(id);
 
         }
@@ -103,15 +138,15 @@ public class HoverUssdApi {
             builder.initialProcessingMessage(initialProcessingMessage);
         }
 
-
         builder.showUserStepDescriptions(showUserStepDescriptions);
+
+
         if (finalMsgDisplayTime != 0) {
             builder.finalMsgDisplayTime(finalMsgDisplayTime);
         }
 
         try {
             Intent buildIntent = builder.buildIntent();
-
             activity.startActivityForResult(buildIntent, 0);
         } catch (Exception e) {
 
@@ -119,7 +154,6 @@ public class HoverUssdApi {
 
             result.put("state", "ussdFailed");
             result.put("errorMessage", e);
-
             eventSink.success(result);
 
         }
