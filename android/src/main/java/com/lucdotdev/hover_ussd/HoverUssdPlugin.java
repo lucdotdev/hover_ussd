@@ -256,7 +256,7 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
 
             return true;
 
-        } else if (requestCode == 4000 && data.hasExtra("error")) {
+        } else if (requestCode == 4000 && resultCode== Activity.RESULT_CANCELED && data != null) {
             Map<String, Object> result = new HashMap<>();
             result.put("state", "ussdFailed");
             result.put("errorMessage", data.getStringExtra("error"));
