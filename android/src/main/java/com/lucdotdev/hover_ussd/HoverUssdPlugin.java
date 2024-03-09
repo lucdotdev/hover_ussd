@@ -98,7 +98,7 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
                     public void onError(String s) {
                         Map<String, Object> result = new HashMap<>();
                         result.put("state", "actionDownloadFailed");
-                        result.put("error", "error");
+                        result.put("error", s);
                         actionDownloadEventSink.success(result);
                     }
 
@@ -127,7 +127,7 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
                     public void onError(String s) {
                         Map<String, Object> result = new HashMap<>();
                         result.put("state", "actionDownloadFailed");
-                        result.put("error", "error");
+                        result.put("error", s);
                         actionDownloadEventSink.success(result);
                     }
 
@@ -240,7 +240,8 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
+
+        if (requestCode == 4000 && resultCode == Activity.RESULT_OK) {
             String uuid = data.hasExtra("uuid") ? data.getStringExtra("uuid") : "";
 
             Map<String, Object> result = new HashMap<>();
@@ -255,29 +256,17 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
 
             return true;
 
-        } else if (requestCode == 0 && resultCode == Activity.RESULT_CANCELED) {
+        } else if (requestCode == 4000 && data.hasExtra("error")) {
             Map<String, Object> result = new HashMap<>();
             result.put("state", "ussdFailed");
-            if (data != null) {
-                result.put("errorMessage", data.getStringExtra("error"));
-            }
+            result.put("errorMessage", data.getStringExtra("error"));
             transactionEventSink.success(result);
 
             return false;
         }
-        //else {
-//            Map<String, Object> result = new HashMap<>();
-//
-//
-//            result.put("state", "ussdFailed");
-//            if (data != null) {
-//                result.put("errorMessage", data.getStringExtra("error"));
-//            }
-//            transactionEventSink.success(result);
-//            return false;
-       // }
 
         return false;
+
     }
 
 

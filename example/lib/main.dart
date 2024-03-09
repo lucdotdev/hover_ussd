@@ -35,39 +35,19 @@ class _MyHomePageState extends State<MyHomePage> {
   late StreamSubscription _transactionListening;
   late StreamSubscription _actionDownloadListening;
   bool _hasPermissions = false;
-  bool? _isActionDownloaded;
-  String? _actionDownloadError;
 
   @override
   void initState() {
-    super.initState();
     _transactionListening =
         _hoverUssd.getUssdTransactionState().listen((event) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(event.toMap().toString())));
-
-      _actionDownloadListening = _hoverUssd
-          .getDownloadActionState()
-          .listen((DonwloadActionState event) {
-        print(event.toMap());
-        if (event is ActionDownloaded) {
-          setState(() {
-            _isActionDownloaded = event.isDownloaded;
-          });
-        }
-
-        if (event is ActionDownloadFailed) {
-          setState(() {
-            _actionDownloadError = event.error;
-          });
-        }
-      });
     });
 
     _checkPermissions();
-    Future.delayed(Duration.zero, () {
-      _initHover();
-    });
+    _initHover();
+    
+    super.initState();
   }
 
   @override
@@ -128,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 _hoverUssd.startTransaction(
                   actionId: "c6e45e62",
                   extras: {"price": "4000"},
-                  theme: "myHoverTheme",
+                  theme: "HoverTheme",
                   header: "Hover Ussd Example",
                   showUserStepDescriptions: true,
                 );
@@ -162,39 +142,31 @@ class _MyHomePageState extends State<MyHomePage> {
             StreamBuilder<DonwloadActionState>(
               stream: _hoverUssd.getDownloadActionState(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text(
-                    "Action Download Status: Unknown",
-                    style: TextStyle(
-                        color: Colors.grey, fontWeight: FontWeight.bold),
-                  );
+                final state = snapshot.data;
+
+                String statusText;
+                Color textColor;
+
+                if (state is ActionDownloaded) {
+                  statusText = "Actions Downloaded";
+                  textColor = Colors.green;
+                } else if (state is ActionDownloadFailed) {
+                  statusText = "Actions Not Downloaded";
+                  textColor = Colors.red;
+                } else if (state is ActionDownloading) {
+                  statusText = "Actions Downloading";
+                  textColor =
+                      Colors.blue; // Adjust color as per your preference
                 } else {
-                  final state = snapshot.data;
-
-                  String statusText;
-                  Color textColor;
-
-                  if (state is ActionDownloaded) {
-                    statusText = "Actions Downloaded";
-                    textColor = Colors.green;
-                  } else if (state is ActionDownloadFailed) {
-                    statusText = "Actions Not Downloaded";
-                    textColor = Colors.red;
-                  } else if (state is ActionDownloading) {
-                    statusText = "Actions Downloading";
-                    textColor =
-                        Colors.blue; // Adjust color as per your preference
-                  } else {
-                    statusText = "Action Download Status: Unknown";
-                    textColor = Colors.grey;
-                  }
-
-                  return Text(
-                    statusText,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.bold),
-                  );
+                  statusText = "Action Download Status: Unknown";
+                  textColor = Colors.grey;
                 }
+
+                return Text(
+                  statusText,
+                  style:
+                      TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                );
               },
             ),
             StreamBuilder<TransactionState>(
@@ -234,7 +206,7 @@ class HoverActionListPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _HoverActionListPageState createState() => _HoverActionListPageState();
+  State<HoverActionListPage> createState() => _HoverActionListPageState();
 }
 
 class _HoverActionListPageState extends State<HoverActionListPage> {

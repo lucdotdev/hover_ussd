@@ -4,7 +4,6 @@ package com.lucdotdev.hover_ussd;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import com.hover.sdk.actions.HoverAction;
 import com.hover.sdk.api.Hover;
@@ -24,36 +23,26 @@ public class HoverUssdApi {
 
 
     private final Activity activity;
-    private final EventChannel.EventSink eventSink;
-
     private final Context context;
+
 
     public HoverUssdApi(Activity activity, EventChannel.EventSink eventSink) {
         this.activity = activity;
-        this.eventSink = eventSink;
         this.context = activity.getApplicationContext();
     }
 
     public void initialize(String apiKey, String branding, String logo, String notificationLogo, Hover.DownloadListener downloadListener) {
         Hover.initialize(context, apiKey, true, downloadListener);
-        if (branding != null && logo != null && notificationLogo != null) {
-            int logoResourceId = getResourceId(context, logo);
-            int notificationLogoResourceId = getResourceId(context, notificationLogo);
-            if (logoResourceId == 0) {
-                Log.e("HOVER_USSD_PLUGIN", ":LOGO NOT FOUND");
-            } else {
-                Hover.setBranding(branding, logoResourceId, notificationLogoResourceId, context);
-            }
-        }
+
+        int logoResourceId = getResourceId(logo == null ? "ic_launcher" : logo);
+        int notificationLogoResourceId = getResourceId(notificationLogo == null ? "ic_launcher" : notificationLogo);
+        Hover.setBranding(branding == null ? "Hover Ussd Plugin" : branding, logoResourceId, notificationLogoResourceId, context);
+
     }
 
     public boolean hasAllPerms() {
         return Hover.hasAllPerms(activity.getApplicationContext());
     }
-
-
-    // get all actions from hover and convert to an list of array map
-
 
     public ArrayList<Map<String, Object>> getAllActions() {
         List<HoverAction> actions = HoverRoomDatabase.getInstance(context).actionDao().getAll();
@@ -67,9 +56,6 @@ public class HoverUssdApi {
         return mapActions;
     }
 
-    public void updateActionConfigs(Hover.DownloadListener actionDownloadListener) {
-        Hover.updateActionConfigs(actionDownloadListener, context);
-    }
 
     public void refreshActions(Hover.DownloadListener actionDownloadListener) {
         Hover.updateActionConfigs(actionDownloadListener, context);
@@ -91,17 +77,14 @@ public class HoverUssdApi {
 
     }
 
-    private int getResourceId(Context context, String resourceName) {
+    private int getResourceId(String resourceName) {
         try {
-            Class<?> res = R.drawable.class;
-            Field field = res.getField(resourceName);
-            return field.getInt(null);
+            return context.getResources().getIdentifier(resourceName, "mipmap", activity.getPackageName());
         } catch (Exception e) {
             e.printStackTrace();
-            return 0; // Return 0 if resource ID is not found
+            return 0;
         }
     }
-
     public void sendUssd(String action_id,
                          HashMap<String, String> extra,
                          String theme,
@@ -145,18 +128,10 @@ public class HoverUssdApi {
             builder.finalMsgDisplayTime(finalMsgDisplayTime);
         }
 
-        try {
-            Intent buildIntent = builder.buildIntent();
-            activity.startActivityForResult(buildIntent, 0);
-        } catch (Exception e) {
 
-            Map<String, Object> result = new HashMap<>();
+        Intent buildIntent = builder.buildIntent();
+        activity.startActivityForResult(buildIntent,4000 );
 
-            result.put("state", "ussdFailed");
-            result.put("errorMessage", e);
-            eventSink.success(result);
-
-        }
 
     }
 }
