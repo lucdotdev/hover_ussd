@@ -2,8 +2,12 @@ package com.lucdotdev.hover_ussd;
 
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.hover.sdk.actions.HoverAction;
 import com.hover.sdk.api.Hover;
@@ -26,7 +30,7 @@ public class HoverUssdApi {
     private final Context context;
 
 
-    public HoverUssdApi(Activity activity, EventChannel.EventSink eventSink) {
+    public HoverUssdApi(Activity activity) {
         this.activity = activity;
         this.context = activity.getApplicationContext();
     }
@@ -41,8 +45,17 @@ public class HoverUssdApi {
     }
 
     public boolean hasAllPerms() {
-        return Hover.hasAllPerms(activity.getApplicationContext());
+        return Hover.hasAllPerms(context);
     }
+
+    public boolean isAccessibilityEnabled() {
+        return Hover.isAccessibilityEnabled(context);
+    }
+
+    public boolean isOverlayEnabled() {
+        return Hover.isOverlayEnabled(context);
+    }
+
 
     public ArrayList<Map<String, Object>> getAllActions() {
         List<HoverAction> actions = HoverRoomDatabase.getInstance(context).actionDao().getAll();
@@ -60,6 +73,7 @@ public class HoverUssdApi {
     public void refreshActions(Hover.DownloadListener actionDownloadListener) {
         Hover.updateActionConfigs(actionDownloadListener, context);
     }
+
 
 
     public ArrayList<Map<String, Object>> getAllTransaction() {
@@ -91,7 +105,8 @@ public class HoverUssdApi {
                          String header,
                          String initialProcessingMessage,
                          boolean showUserStepDescriptions,
-                         int finalMsgDisplayTime
+                         int finalMsgDisplayTime,
+                         BroadcastReceiver transactionStateReceiver
 
     ) {
 
@@ -130,7 +145,9 @@ public class HoverUssdApi {
 
 
         Intent buildIntent = builder.buildIntent();
-        activity.startActivityForResult(buildIntent,4000 );
+
+
+        activity.startActivityForResult(buildIntent,0 );
 
 
     }

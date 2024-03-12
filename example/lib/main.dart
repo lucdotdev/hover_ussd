@@ -35,6 +35,8 @@ class _MyHomePageState extends State<MyHomePage> {
   late StreamSubscription _transactionListening;
   late StreamSubscription _actionDownloadListening;
   bool _hasPermissions = false;
+  bool isOverlayEnabled = false;
+  bool isAccessiblityEnabled = false;
 
   @override
   void initState() {
@@ -44,9 +46,18 @@ class _MyHomePageState extends State<MyHomePage> {
           .showSnackBar(SnackBar(content: Text(event.toMap().toString())));
     });
 
+    _actionDownloadListening =
+        _hoverUssd.getDownloadActionState().listen((event) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(event.toString())));
+    });
+
+    _actionDownloadListening.onData((event) {
+      _initHover();
+    });
     _checkPermissions();
-    _initHover();
-    
+    _isAccessiblityEnabled();
+    _isOverlayEnabled();
     super.initState();
   }
 
@@ -62,6 +73,15 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _hasPermissions = hasPermissions;
     });
+  }
+  Future<void> _isAccessiblityEnabled() async {
+    bool isAccessiblityEnabled = await _hoverUssd.isAccessiblityEnabled();
+    print(isAccessiblityEnabled);
+  }
+
+  Future<void> _isOverlayEnabled() async {
+    bool isOverlayEnabled = await _hoverUssd.isOverlayEnabled();
+    print(isOverlayEnabled);
   }
 
   Future<void> _initHover() async {
@@ -136,8 +156,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
-            // stream of actiondownload status
+            Text(
+              isAccessiblityEnabled
+                  ? "Accessibility Granted"
+                  : "Accessibility Not Granted",
+              style: TextStyle(
+                color: isAccessiblityEnabled ? Colors.green : Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              isOverlayEnabled
+                  ? "Overlay Granted"
+                  : "Overlay Not Granted",
+              style: TextStyle(
+                color: isOverlayEnabled ? Colors.green : Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
 
             StreamBuilder<DonwloadActionState>(
               stream: _hoverUssd.getDownloadActionState(),

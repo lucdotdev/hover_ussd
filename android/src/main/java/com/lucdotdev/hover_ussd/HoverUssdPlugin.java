@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -31,7 +32,7 @@ import io.flutter.plugin.common.PluginRegistry;
  */
 
 
-public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler, PluginRegistry.ActivityResultListener{
+public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler, PluginRegistry.ActivityResultListener {
 
 
     private Activity activity;
@@ -40,8 +41,11 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
     private EventChannel.EventSink transactionEventSink;
     private EventChannel.EventSink actionDownloadEventSink;
     private BroadcastReceiver smsReceiver;
+    private BroadcastReceiver transactionStateReceiver;
 
     private HoverUssdApi hoverUssdApi;
+
+    private static final String TAG = "HOVER_USSD_PLUGIN";
 
 
     @Override
@@ -55,13 +59,18 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
             @Override
             public void onListen(Object arguments, EventChannel.EventSink events) {
                 actionDownloadEventSink = events;
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("state", "listening");
+
+                actionDownloadEventSink.success(result);
             }
 
             @Override
             public void onCancel(Object arguments) {
             }
         });
-        
+
         transactionEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object arguments, EventChannel.EventSink events) {
@@ -72,6 +81,7 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
             public void onCancel(Object arguments) {
             }
         });
+
 
         channel.setMethodCallHandler(this);
 
@@ -90,7 +100,7 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        hoverUssdApi = new HoverUssdApi(activity, transactionEventSink);
+        hoverUssdApi = new HoverUssdApi(activity);
         switch (call.method) {
             case "Initialize":
                 hoverUssdApi.initialize(call.argument("apiKey"), call.argument("branding"), call.argument("logo"), call.argument("notificationLogo"), new Hover.DownloadListener() {
@@ -110,10 +120,16 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
                         actionDownloadEventSink.success(result);
                     }
                 });
-             
+
                 break;
             case "HasAllPermissions":
                 result.success(hoverUssdApi.hasAllPerms());
+                break;
+            case "IsAccessibilityEnabled":
+                result.success(hoverUssdApi.isAccessibilityEnabled());
+                break;
+            case "IsOverlayEnabled":
+                result.success(hoverUssdApi.isOverlayEnabled());
                 break;
             case "getAllActions":
                 result.success(hoverUssdApi.getAllActions());
@@ -146,6 +162,18 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
                 resultJson.put("state", "ussdLoading");
                 transactionEventSink.success(resultJson);
 
+                transactionStateReceiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent i) {
+
+                        transactionEventSink.success(i);
+                        Log.i(TAG, "Received pending transaction created broadcast");
+                        Log.i(TAG, "uuid: " + i.getStringExtra("uuid"));
+
+
+                    }
+                };
+
                 try {
                     hoverUssdApi.sendUssd(
                             (String) call.argument("actionId"),
@@ -162,7 +190,9 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
                                     (String) call.argument("initialProcessingMessage")
                                     : "",
                             false,
-                            call.hasArgument("finalMsgDisplayTime") ? (int) call.argument("finalMsgDisplayTime") : 5000);
+                            (int) call.argument("finalMsgDisplayTime"),
+                            transactionStateReceiver
+                    );
                 } catch (Exception e) {
 
                     Map<String, Object> resultError = new HashMap<>();
@@ -217,6 +247,7 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
         };
         LocalBroadcastManager.getInstance(activity.getBaseContext()).registerReceiver(smsReceiver, new IntentFilter(activity.getPackageName() + ".SMS_MISS"));
 
+
     }
 
     @Override
@@ -229,19 +260,27 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
         activity = binding.getActivity();
         binding.addActivityResultListener(this);
+
     }
 
     @Override
     public void onDetachedFromActivity() {
         LocalBroadcastManager.getInstance(activity.getBaseContext()).unregisterReceiver(smsReceiver);
+
+        if (transactionStateReceiver != null) {
+            LocalBroadcastManager.getInstance(activity.getApplication()).unregisterReceiver(transactionStateReceiver);
+        }
+
         activity = null;
+
     }
 
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (requestCode == 4000 && resultCode == Activity.RESULT_OK) {
+
+        if (requestCode == 0 && data != null && resultCode == Activity.RESULT_OK) {
             String uuid = data.hasExtra("uuid") ? data.getStringExtra("uuid") : "";
 
             Map<String, Object> result = new HashMap<>();
@@ -256,19 +295,16 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
 
             return true;
 
-        } else if (requestCode == 4000 && resultCode== Activity.RESULT_CANCELED && data != null) {
+        } else if (requestCode == 0 && resultCode == Activity.RESULT_CANCELED && data != null) {
             Map<String, Object> result = new HashMap<>();
             result.put("state", "ussdFailed");
             result.put("errorMessage", data.getStringExtra("error"));
             transactionEventSink.success(result);
-
-            return false;
+            return true;
         }
 
-        return false;
+        return true;
 
     }
-
-
 
 }
