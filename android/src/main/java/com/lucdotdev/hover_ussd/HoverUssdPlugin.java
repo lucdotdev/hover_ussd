@@ -34,36 +34,27 @@ import io.flutter.plugin.common.PluginRegistry;
 
 public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler, PluginRegistry.ActivityResultListener {
 
-
     private Activity activity;
-
-
     private EventChannel.EventSink transactionEventSink;
     private EventChannel.EventSink actionDownloadEventSink;
     private BroadcastReceiver smsReceiver;
     private BroadcastReceiver transactionStateReceiver;
-
     private HoverUssdApi hoverUssdApi;
-
+    private Context context;
     private static final String TAG = "HOVER_USSD_PLUGIN";
-
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-
         MethodChannel channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "HoverUssdChannel");
         EventChannel transactionEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "TransactionEvent");
         EventChannel actionDownloadEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "ActionDownloadEvent");
+
+        context = flutterPluginBinding.getApplicationContext();
 
         actionDownloadEventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object arguments, EventChannel.EventSink events) {
                 actionDownloadEventSink = events;
-
-                Map<String, Object> result = new HashMap<>();
-                result.put("state", "listening");
-
-                actionDownloadEventSink.success(result);
             }
 
             @Override
@@ -82,45 +73,66 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
             }
         });
 
-
         channel.setMethodCallHandler(this);
-
     }
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-
-
     }
 
-    private String intentNullAwareString(Intent intent, String name) {
-        return intent.hasExtra(name) ? intent.getStringExtra(name) : "";
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        activity = binding.getActivity();
+        binding.addActivityResultListener(this);
+
+        smsReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                handleSmsReceived(intent);
+            }
+        };
+        LocalBroadcastManager.getInstance(activity).registerReceiver(smsReceiver, new IntentFilter(activity.getPackageName() + ".SMS_MISS"));
     }
 
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        activity = null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        activity = binding.getActivity();
+        binding.addActivityResultListener(this);
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        LocalBroadcastManager.getInstance(activity).unregisterReceiver(smsReceiver);
+        if (transactionStateReceiver != null) {
+            LocalBroadcastManager.getInstance(activity.getApplication()).unregisterReceiver(transactionStateReceiver);
+        }
+        activity = null;
+    }
+
+    @Override
+    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 0) {
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                handleUssdSuccess(data);
+            } else if (resultCode == Activity.RESULT_CANCELED && data != null) {
+                handleUssdFailed(data);
+            }
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        hoverUssdApi = new HoverUssdApi(activity);
+        hoverUssdApi = new HoverUssdApi(activity, context);
         switch (call.method) {
             case "Initialize":
-                hoverUssdApi.initialize(call.argument("apiKey"), call.argument("branding"), call.argument("logo"), call.argument("notificationLogo"), new Hover.DownloadListener() {
-                    @Override
-                    public void onError(String s) {
-                        Map<String, Object> result = new HashMap<>();
-                        result.put("state", "actionDownloadFailed");
-                        result.put("error", s);
-                        actionDownloadEventSink.success(result);
-                    }
-
-                    @Override
-                    public void onSuccess(ArrayList<HoverAction> arrayList) {
-                        Map<String, Object> result = new HashMap<>();
-                        result.put("state", "actionDownloaded");
-                        result.put("isDownloaded", true);
-                        actionDownloadEventSink.success(result);
-                    }
-                });
-
+                initializeHover(call);
                 break;
             case "HasAllPermissions":
                 result.success(hoverUssdApi.hasAllPerms());
@@ -138,173 +150,131 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
                 result.success(hoverUssdApi.getAllTransaction());
                 break;
             case "refreshActions":
-                hoverUssdApi.refreshActions(new Hover.DownloadListener() {
-                    @Override
-                    public void onError(String s) {
-                        Map<String, Object> result = new HashMap<>();
-                        result.put("state", "actionDownloadFailed");
-                        result.put("error", s);
-                        actionDownloadEventSink.success(result);
-                    }
-
-                    @Override
-                    public void onSuccess(ArrayList<HoverAction> arrayList) {
-                        Map<String, Object> result = new HashMap<>();
-                        result.put("state", "actionDownloaded");
-                        result.put("isDownloaded", true);
-                        actionDownloadEventSink.success(result);
-                    }
-                });
+                refreshActions();
                 break;
-
             case "HoverStartATransaction":
-                Map<String, Object> resultJson = new HashMap<>();
-                resultJson.put("state", "ussdLoading");
-                transactionEventSink.success(resultJson);
-
-                transactionStateReceiver = new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent i) {
-
-                        transactionEventSink.success(i);
-                        Log.i(TAG, "Received pending transaction created broadcast");
-                        Log.i(TAG, "uuid: " + i.getStringExtra("uuid"));
-
-
-                    }
-                };
-
-                try {
-                    hoverUssdApi.sendUssd(
-                            (String) call.argument("actionId"),
-                            call.hasArgument("extras") ?
-                                    Objects.requireNonNull(call.argument("extras"))
-                                    : new HashMap<String, String>(),
-                            call.hasArgument("theme") ?
-                                    (String) call.argument("theme") :
-                                    "",
-                            call.hasArgument("header") ?
-                                    (String) call.argument("header")
-                                    : "",
-                            call.hasArgument("initialProcessingMessage") ?
-                                    (String) call.argument("initialProcessingMessage")
-                                    : "",
-                            false,
-                            (int) call.argument("finalMsgDisplayTime"),
-                            transactionStateReceiver
-                    );
-                } catch (Exception e) {
-
-                    Map<String, Object> resultError = new HashMap<>();
-                    resultError.put("state", "ussdFailed");
-
-                    resultError.put("errorMessage", e.getMessage());
-
-                    transactionEventSink.success(resultError);
-
-                }
-
-                result.success(true);
-
+                startHoverTransaction(call, result);
                 break;
             default:
                 result.notImplemented();
-
         }
         hoverUssdApi = null;
-
     }
 
-
-    @Override
-    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-        activity = binding.getActivity();
-        binding.addActivityResultListener(this);
-        smsReceiver = new BroadcastReceiver() {
+    private void initializeHover(MethodCall call) {
+        hoverUssdApi.initialize(call.argument("apiKey"), call.argument("branding"), call.argument("logo"), call.argument("notificationLogo"), new Hover.DownloadListener() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onError(String s) {
                 Map<String, Object> result = new HashMap<>();
-                result.put("state", "smsParsed");
-                result.put("action_id", intentNullAwareString(intent, "action_id"));
-                result.put("response_message", intentNullAwareString(intent, "response_message"));
-                result.put("status", intentNullAwareString(intent, "status"));
-                result.put("status_meaning", intentNullAwareString(intent, "status_meaning"));
-                result.put("status_description", intentNullAwareString(intent, "status_description"));
-                result.put("uuid", intentNullAwareString(intent, "uuid"));
-                result.put("im_hni", intentNullAwareString(intent, "im_hni"));
-                result.put("environment", intent.getIntExtra("environment", 0));
-                result.put("request_timestamp", intent.getIntExtra("request_timestamp", 0));
-                result.put("response_timestamp", intent.getIntExtra("response_timestamp", 0));
+                result.put("state", "actionDownloadFailed");
+                result.put("error", s);
+                actionDownloadEventSink.success(result);
+            }
 
-                result.put("matched_parser_id", intentNullAwareString(intent, "matched_parser_id"));
-                result.put("messagetype", intentNullAwareString(intent, "messagetype"));
-                result.put("message_sender", intentNullAwareString(intent, "message_sender"));
-                result.put("regex", intentNullAwareString(intent, "regex"));
+            @Override
+            public void onSuccess(ArrayList<HoverAction> arrayList) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("state", "actionDownloaded");
+                result.put("isDownloaded", true);
+                actionDownloadEventSink.success(result);
+            }
+        });
+    }
 
+    private void refreshActions() {
+        hoverUssdApi.refreshActions(new Hover.DownloadListener() {
+            @Override
+            public void onError(String s) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("state", "actionDownloadFailed");
+                result.put("error", s);
+                actionDownloadEventSink.success(result);
+            }
 
-                transactionEventSink.success(result);
+            @Override
+            public void onSuccess(ArrayList<HoverAction> arrayList) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("state", "actionDownloaded");
+                result.put("isDownloaded", true);
+                actionDownloadEventSink.success(result);
+            }
+        });
+    }
+
+    private void startHoverTransaction(MethodCall call, MethodChannel.Result result) {
+        Map<String, Object> resultJson = new HashMap<>();
+        resultJson.put("state", "ussdLoading");
+        transactionEventSink.success(resultJson);
+
+        transactionStateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent i) {
+                transactionEventSink.success(i.getExtras());
+                Log.i(TAG, "Received pending transaction created broadcast");
+                Log.i(TAG, "uuid: " + i.getStringExtra("uuid"));
             }
         };
-        LocalBroadcastManager.getInstance(activity.getBaseContext()).registerReceiver(smsReceiver, new IntentFilter(activity.getPackageName() + ".SMS_MISS"));
 
-
-    }
-
-    @Override
-    public void onDetachedFromActivityForConfigChanges() {
-        activity = null;
-    }
-
-
-    @Override
-    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
-        activity = binding.getActivity();
-        binding.addActivityResultListener(this);
-
-    }
-
-    @Override
-    public void onDetachedFromActivity() {
-        LocalBroadcastManager.getInstance(activity.getBaseContext()).unregisterReceiver(smsReceiver);
-
-        if (transactionStateReceiver != null) {
-            LocalBroadcastManager.getInstance(activity.getApplication()).unregisterReceiver(transactionStateReceiver);
+        try {
+            hoverUssdApi.sendUssd(
+                    Objects.requireNonNull(call.argument("actionId")),
+                    call.argument("extras") != null ? call.argument("extras") : new HashMap<String, String>(),
+                    call.argument("theme"),
+                    call.argument("header"),
+                    call.argument("initialProcessingMessage"),
+                    false,
+                    call.argument("finalMsgDisplayTime"),
+                    transactionStateReceiver
+            );
+            result.success(true);
+        } catch (Exception e) {
+            Map<String, Object> resultError = new HashMap<>();
+            resultError.put("state", "ussdFailed");
+            resultError.put("errorMessage", e.getMessage());
+            transactionEventSink.success(resultError);
         }
-
-        activity = null;
-
     }
 
+    private void handleSmsReceived(Intent intent) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("state", "smsParsed");
+        result.put("action_id", intentNullAwareString(intent, "action_id"));
+        result.put("response_message", intentNullAwareString(intent, "response_message"));
+        result.put("status", intentNullAwareString(intent, "status"));
+        result.put("status_meaning", intentNullAwareString(intent, "status_meaning"));
+        result.put("status_description", intentNullAwareString(intent, "status_description"));
+        result.put("uuid", intentNullAwareString(intent, "uuid"));
+        result.put("im_hni", intentNullAwareString(intent, "im_hni"));
+        result.put("environment", intent.getIntExtra("environment", 0));
+        result.put("request_timestamp", intent.getIntExtra("request_timestamp", 0));
+        result.put("response_timestamp", intent.getIntExtra("response_timestamp", 0));
+        result.put("matched_parser_id", intentNullAwareString(intent, "matched_parser_id"));
+        result.put("messagetype", intentNullAwareString(intent, "messagetype"));
+        result.put("message_sender", intentNullAwareString(intent, "message_sender"));
+        result.put("regex", intentNullAwareString(intent, "regex"));
+        transactionEventSink.success(result);
+    }
 
-    @Override
-    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-
-
-        if (requestCode == 0 && data != null && resultCode == Activity.RESULT_OK) {
-            String uuid = data.hasExtra("uuid") ? data.getStringExtra("uuid") : "";
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("state", "ussdSucceeded");
-            result.put("uuid", uuid);
-            if (data.hasExtra("session_messages")) {
-                String[] sessionMessages = data.getStringArrayExtra("session_messages");
-                result.put("ussdSessionMessages", sessionMessages);
-            }
-
-            transactionEventSink.success(result);
-
-            return true;
-
-        } else if (requestCode == 0 && resultCode == Activity.RESULT_CANCELED && data != null) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("state", "ussdFailed");
-            result.put("errorMessage", data.getStringExtra("error"));
-            transactionEventSink.success(result);
-            return true;
+    private void handleUssdSuccess(Intent data) {
+        String uuid = data.hasExtra("uuid") ? data.getStringExtra("uuid") : "";
+        Map<String, Object> result = new HashMap<>();
+        result.put("state", "ussdSucceeded");
+        result.put("uuid", uuid);
+        if (data.hasExtra("session_messages")) {
+            String[] sessionMessages = data.getStringArrayExtra("session_messages");
+            result.put("ussdSessionMessages", sessionMessages);
         }
-
-        return true;
-
+        transactionEventSink.success(result);
     }
 
+    private void handleUssdFailed(Intent data) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("state", "ussdFailed");
+        result.put("errorMessage", data.getStringExtra("error"));
+        transactionEventSink.success(result);
+    }
+
+    private String intentNullAwareString(Intent intent, String name) {
+        return intent.hasExtra(name) ? intent.getStringExtra(name) : "";
+    }
 }

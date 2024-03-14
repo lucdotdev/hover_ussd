@@ -1,38 +1,28 @@
 package com.lucdotdev.hover_ussd;
 
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import com.hover.sdk.actions.HoverAction;
 import com.hover.sdk.api.Hover;
 import com.hover.sdk.api.HoverParameters;
 import com.hover.sdk.database.HoverRoomDatabase;
 import com.hover.sdk.transactions.Transaction;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.flutter.plugin.common.EventChannel;
-
 public class HoverUssdApi {
-
 
     private final Activity activity;
     private final Context context;
 
-
-    public HoverUssdApi(Activity activity) {
+    public HoverUssdApi(Activity activity, Context context) {
         this.activity = activity;
-        this.context = activity.getApplicationContext();
+        this.context = context;
     }
 
     public void initialize(String apiKey, String branding, String logo, String notificationLogo, Hover.DownloadListener downloadListener) {
@@ -41,7 +31,6 @@ public class HoverUssdApi {
         int logoResourceId = getResourceId(logo == null ? "ic_launcher" : logo);
         int notificationLogoResourceId = getResourceId(notificationLogo == null ? "ic_launcher" : notificationLogo);
         Hover.setBranding(branding == null ? "Hover Ussd Plugin" : branding, logoResourceId, notificationLogoResourceId, context);
-
     }
 
     public boolean hasAllPerms() {
@@ -56,7 +45,6 @@ public class HoverUssdApi {
         return Hover.isOverlayEnabled(context);
     }
 
-
     public ArrayList<Map<String, Object>> getAllActions() {
         List<HoverAction> actions = HoverRoomDatabase.getInstance(context).actionDao().getAll();
         ArrayList<Map<String, Object>> mapActions = new ArrayList<>();
@@ -69,26 +57,20 @@ public class HoverUssdApi {
         return mapActions;
     }
 
-
     public void refreshActions(Hover.DownloadListener actionDownloadListener) {
         Hover.updateActionConfigs(actionDownloadListener, context);
     }
 
-
-
     public ArrayList<Map<String, Object>> getAllTransaction() {
-
         List<Transaction> transactions = HoverRoomDatabase.getInstance(context).transactionDao().getAll();
         ArrayList<Map<String, Object>> mapTransactions = new ArrayList<>();
 
         for (Transaction transaction : transactions) {
-
             Map<String, Object> mapTransaction = HoverUssdObjectToMap.convertTransactionToMap(transaction);
             mapTransactions.add(mapTransaction);
         }
 
         return mapTransactions;
-
     }
 
     private int getResourceId(String resourceName) {
@@ -99,6 +81,7 @@ public class HoverUssdApi {
             return 0;
         }
     }
+
     public void sendUssd(String action_id,
                          HashMap<String, String> extra,
                          String theme,
@@ -106,10 +89,7 @@ public class HoverUssdApi {
                          String initialProcessingMessage,
                          boolean showUserStepDescriptions,
                          int finalMsgDisplayTime,
-                         BroadcastReceiver transactionStateReceiver
-
-    ) {
-
+                         BroadcastReceiver transactionStateReceiver) {
 
         final HoverParameters.Builder builder = new HoverParameters.Builder(context);
 
@@ -123,11 +103,9 @@ public class HoverUssdApi {
             }
         }
 
-
         if (theme != null) {
             int id = context.getResources().getIdentifier(theme, "style", context.getPackageName());
             builder.style(id);
-
         }
         if (header != null) {
             builder.setHeader(header);
@@ -138,17 +116,11 @@ public class HoverUssdApi {
 
         builder.showUserStepDescriptions(showUserStepDescriptions);
 
-
         if (finalMsgDisplayTime != 0) {
             builder.finalMsgDisplayTime(finalMsgDisplayTime);
         }
 
-
         Intent buildIntent = builder.buildIntent();
-
-
-        activity.startActivityForResult(buildIntent,0 );
-
-
+        activity.startActivityForResult(buildIntent, 0);
     }
 }

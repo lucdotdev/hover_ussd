@@ -67,8 +67,8 @@ class HoverUssd {
   }
 
   // this check if app accessibility permission is granted
-  Future<bool> isAccessiblityEnabled() async {
-    return await _methodChannel.invokeMethod("IsAccessiblityEnabled");
+  Future<bool> isAccessibilityEnabled() async {
+    return await _methodChannel.invokeMethod("IsAccessibilityEnabled");
   }
 
   // check if app has overlay permission

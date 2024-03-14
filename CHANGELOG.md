@@ -1,3 +1,6 @@
+## 2.1.0
+* rethink entire plugin
+
 ## 2.0.0
 * revert to hover standart
 * change sendUssd() to startTransaction()

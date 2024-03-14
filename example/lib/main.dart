@@ -35,8 +35,8 @@ class _MyHomePageState extends State<MyHomePage> {
   late StreamSubscription _transactionListening;
   late StreamSubscription _actionDownloadListening;
   bool _hasPermissions = false;
-  bool isOverlayEnabled = false;
-  bool isAccessiblityEnabled = false;
+  bool _isOverlayEnabled = false;
+  bool _isAccessibilityEnabled = false;
 
   @override
   void initState() {
@@ -51,13 +51,13 @@ class _MyHomePageState extends State<MyHomePage> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(event.toString())));
     });
-
+    _checkAccessibility();
+    _checkPermissions();
+    _checkOverlay();
     _actionDownloadListening.onData((event) {
       _initHover();
     });
-    _checkPermissions();
-    _isAccessiblityEnabled();
-    _isOverlayEnabled();
+
     super.initState();
   }
 
@@ -67,21 +67,21 @@ class _MyHomePageState extends State<MyHomePage> {
     _actionDownloadListening.cancel();
     super.dispose();
   }
+  //check for permissions
 
   Future<void> _checkPermissions() async {
-    bool hasPermissions = await _hoverUssd.hasAllPermissions();
-    setState(() {
-      _hasPermissions = hasPermissions;
-    });
-  }
-  Future<void> _isAccessiblityEnabled() async {
-    bool isAccessiblityEnabled = await _hoverUssd.isAccessiblityEnabled();
-    print(isAccessiblityEnabled);
+    _hasPermissions = await _hoverUssd.hasAllPermissions();
+    setState(() {});
   }
 
-  Future<void> _isOverlayEnabled() async {
-    bool isOverlayEnabled = await _hoverUssd.isOverlayEnabled();
-    print(isOverlayEnabled);
+  Future<void> _checkAccessibility() async {
+    _isAccessibilityEnabled = await _hoverUssd.isAccessibilityEnabled();
+    setState(() {});
+  }
+
+  Future<void> _checkOverlay() async {
+    _isOverlayEnabled = await _hoverUssd.isOverlayEnabled();
+    setState(() {});
   }
 
   Future<void> _initHover() async {
@@ -99,9 +99,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _getAndGoToActions() async {
     final actions = await _hoverUssd.getAllActions();
-    for (var action in actions) {
-      print(action.toMap());
-    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -157,20 +154,18 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             Text(
-              isAccessiblityEnabled
+              _isAccessibilityEnabled
                   ? "Accessibility Granted"
                   : "Accessibility Not Granted",
               style: TextStyle(
-                color: isAccessiblityEnabled ? Colors.green : Colors.red,
+                color: _isAccessibilityEnabled ? Colors.green : Colors.red,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              isOverlayEnabled
-                  ? "Overlay Granted"
-                  : "Overlay Not Granted",
+              _isOverlayEnabled ? "Overlay Granted" : "Overlay Not Granted",
               style: TextStyle(
-                color: isOverlayEnabled ? Colors.green : Colors.red,
+                color: _isOverlayEnabled ? Colors.green : Colors.red,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -211,7 +206,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (snapshot.data is SmsParsed) {
                   return Text("Sms parsed : \n${snapshot.data!.toMap()}");
                 }
-
                 if (snapshot.data is UssdSucceeded) {
                   return Text("Ussd Succeded : \n${snapshot.data!.toMap()}");
                 }
@@ -224,7 +218,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (snapshot.data is EmptyState) {
                   return const Text("Empty State");
                 }
-
                 return const Text("No state");
               },
             ),
