@@ -81,6 +81,9 @@ public class HoverUssdApi {
             return 0;
         }
     }
+    public  void setPermissionsActivity(String activityString){
+        Hover.setPermissionActivity(activityString, context);
+    }
 
     public void sendUssd(String action_id,
                          HashMap<String, String> extra,

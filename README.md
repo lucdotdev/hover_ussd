@@ -183,6 +183,17 @@ The Hover USSD plugin provides a simple and easy-to-use interface for integratin
      showUserStepDescriptions: true,
    );
 ```
+
+* ### Add a custom permissions activity
+
+```dart
+
+  final String activityName = "com.example.yourApp.custompermissionsActivity";
+  _hoverUssd.setPermissionsActivity(activityName: activityName);
+
+   
+```
+
 ### Example
 
 ```dart

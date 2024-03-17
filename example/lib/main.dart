@@ -38,6 +38,8 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isOverlayEnabled = false;
   bool _isAccessibilityEnabled = false;
 
+  final String activityName = "com.hover.sdk.permissions.PermissionActivity";
+
   @override
   void initState() {
     _transactionListening =
@@ -92,6 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
         logo: "ic_launcher",
         notificationLogo: "ic_launcher",
       );
+
+      _hoverUssd.setPermissionsActivity(activityName: activityName);
     } catch (e) {
       print(e);
     }

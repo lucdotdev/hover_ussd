@@ -137,6 +137,10 @@ public class HoverUssdPlugin implements FlutterPlugin, ActivityAware, MethodChan
             case "HasAllPermissions":
                 result.success(hoverUssdApi.hasAllPerms());
                 break;
+            case "SetPermissionsActivity":
+                hoverUssdApi.setPermissionsActivity((String) call.argument("activityName"));
+                result.success(true);
+                break;
             case "IsAccessibilityEnabled":
                 result.success(hoverUssdApi.isAccessibilityEnabled());
                 break;
