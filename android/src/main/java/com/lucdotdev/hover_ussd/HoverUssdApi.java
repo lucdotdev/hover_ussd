@@ -1,9 +1,14 @@
 package com.lucdotdev.hover_ussd;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+
+import androidx.core.content.ContextCompat;
+
 import com.hover.sdk.actions.HoverAction;
 import com.hover.sdk.api.Hover;
 import com.hover.sdk.api.HoverParameters;
@@ -37,12 +42,38 @@ public class HoverUssdApi {
         return Hover.hasAllPerms(context);
     }
 
-    public boolean isAccessibilityEnabled() {
+    public boolean hasAccessibilityPermission() {
         return Hover.isAccessibilityEnabled(context);
     }
 
-    public boolean isOverlayEnabled() {
+    public boolean hasOverlayPermission() {
         return Hover.isOverlayEnabled(context);
+    }
+
+    public boolean hasContactPermission() {
+        return Build.VERSION.SDK_INT < 23 || hasPermission(new String[]{Manifest.permission.READ_CONTACTS}, context);
+    }
+
+    public  boolean hasWritePermission() {
+        return Build.VERSION.SDK_INT < 23 || hasPermission(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, context);
+    }
+
+    public boolean hasSmsPermission() {
+        return Build.VERSION.SDK_INT < 23 || hasPermission(new String[]{Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS}, context);
+    }
+
+    public  boolean hasPhonePermission() {
+        return Build.VERSION.SDK_INT < 23 || hasPermission(new String[]{Manifest.permission.READ_PHONE_STATE}, context);
+    }
+
+    private static boolean hasPermission(String[] permissions, Context context) {
+        if (context == null) return false;
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(context, permission) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public ArrayList<Map<String, Object>> getAllActions() {

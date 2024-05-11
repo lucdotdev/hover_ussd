@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:hover_ussd/hover_ussd.dart';
 
-
 class HoverUssd {
   static const MethodChannel _methodChannel = MethodChannel('HoverUssdChannel');
-  static const EventChannel _transactionEventChannel = EventChannel('TransactionEvent');
-  static const EventChannel _downloadEventChannel = EventChannel('ActionDownloadEvent');
+  static const EventChannel _transactionEventChannel =
+      EventChannel('TransactionEvent');
+  static const EventChannel _downloadEventChannel =
+      EventChannel('ActionDownloadEvent');
 
   Stream<TransactionState>? _onTransactionStateChanged;
 
@@ -65,22 +66,41 @@ class HoverUssd {
     return await _methodChannel.invokeMethod("HasAllPermissions");
   }
 
-  /// this check if app accessibility permission is granted
-  Future<bool> isAccessibilityEnabled() async {
-    return await _methodChannel.
-    invokeMethod("IsAccessibilityEnabled");
-  }
-  /// this set custom permissions activity for the app
-  /// [activityName] is the name of the custom activity to be set ex: 'com.example.example.CustomPermissionsActivity'
-  Future<void> setPermissionsActivity({required String activityName})async{
-    _methodChannel.invokeMethod("SetPermissionsActivity");
+  // Check accessibility permission
+  Future<bool> hasAccessibilityPermission() async {
+    return await _methodChannel.invokeMethod('HasAccessibilityPermission');
   }
 
-  /// check if app has overlay permission
-  Future<bool> isOverlayEnabled() async {
-    return await _methodChannel.invokeMethod("IsOverlayEnabled");
+  // Check SMS permission
+  Future<bool> hasSmsPermission() async {
+    return await _methodChannel.invokeMethod('HasSmsPermission');
   }
-  
+
+  // Check phone permission
+  Future<bool> hasPhonePermission() async {
+    return await _methodChannel.invokeMethod('HasPhonePermission');
+  }
+
+  // Check contacts permission
+  Future<bool> hasContactsPermission() async {
+    return await _methodChannel.invokeMethod('HasContactsPermission');
+  }
+
+  // Check write permission
+  Future<bool> hasWritePermission() async {
+    return await _methodChannel.invokeMethod('HasWritePermission');
+  }
+
+  // Check overlay permission
+  Future<bool> hasOverlayPermission() async {
+    return await _methodChannel.invokeMethod('HasOverlayPermission');
+  }
+
+  /// this set custom permissions activity for the app
+  /// [activityName] is the name of the custom activity to be set ex: 'com.example.example.CustomPermissionsActivity'
+  Future<void> setPermissionsActivity({required String activityName}) async {
+    _methodChannel.invokeMethod("SetPermissionsActivity");
+  }
 
   /// Check if the app has downloaded actions.
   Future<bool> hasActionsDownloaded() async {
@@ -92,11 +112,12 @@ class HoverUssd {
     try {
       final result = await _methodChannel.invokeListMethod("getAllActions");
       if (result != null) {
-        List<HoverAction> actions =
-            result.map((item) => HoverAction.fromMap(item.cast<String, dynamic>())).toList();
+        List<HoverAction> actions = result
+            .map((item) => HoverAction.fromMap(item.cast<String, dynamic>()))
+            .toList();
         return actions;
       } else {
-        return []; 
+        return [];
       }
     } catch (e) {
       print('Error retrieving actions: $e');
@@ -104,7 +125,7 @@ class HoverUssd {
     }
   }
 
-  /// refresh actions 
+  /// refresh actions
   Future<void> refreshActions() async {
     await _methodChannel.invokeMethod("refreshActions");
   }
@@ -120,11 +141,11 @@ class HoverUssd {
             resultList.map((item) => Transaction.fromMap(item)).toList();
         return transactions;
       } else {
-        return []; 
+        return [];
       }
     } catch (e) {
       print('Error retrieving transactions: $e');
-      return []; 
+      return [];
     }
   }
 
@@ -150,7 +171,7 @@ class HoverUssd {
               event['state'],
               Map<String, dynamic>.from(event),
             ))
-      .asBroadcastStream();
+        .asBroadcastStream();
   }
 
   DonwloadActionState _parseDownloadActionState(

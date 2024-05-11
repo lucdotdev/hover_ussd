@@ -1,7 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hover_ussd/hover_ussd.dart';
-import 'package:hover_ussd/models/transaction_state.dart';
 
 void main() {
   runApp(const MyApp());
@@ -77,12 +77,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _checkAccessibility() async {
-    _isAccessibilityEnabled = await _hoverUssd.isAccessibilityEnabled();
+    _isAccessibilityEnabled = await _hoverUssd.hasSmsPermission();
     setState(() {});
   }
 
   Future<void> _checkOverlay() async {
-    _isOverlayEnabled = await _hoverUssd.isOverlayEnabled();
+    _isOverlayEnabled = await _hoverUssd.hasOverlayPermission();
     setState(() {});
   }
 
