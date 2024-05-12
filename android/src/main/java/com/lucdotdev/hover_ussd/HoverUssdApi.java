@@ -31,7 +31,7 @@ public class HoverUssdApi {
     }
 
     public void initialize(String apiKey, String branding, String logo, String notificationLogo, Hover.DownloadListener downloadListener) {
-        Hover.initialize(context, apiKey, true, downloadListener);
+        Hover.initialize(context, apiKey, false, downloadListener);
 
         int logoResourceId = getResourceId(logo == null ? "ic_launcher" : logo);
         int notificationLogoResourceId = getResourceId(notificationLogo == null ? "ic_launcher" : notificationLogo);
