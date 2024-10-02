@@ -1,19 +1,19 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hover_ussd/hover_ussd.dart';
 
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+class MockHoverUssdPlatform
+    with MockPlatformInterfaceMixin
+ {
+
+}
+
 void main() {
-  const MethodChannel channel = MethodChannel('hover_ussd');
 
-  TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return '42';
-    });
-  });
-
-  tearDown(() {
-    channel.setMockMethodCallHandler(null);
+  test('getPlatformVersion', () async {
+    HoverUssd hoverUssdPlugin = HoverUssd();
+;
   });
 }
